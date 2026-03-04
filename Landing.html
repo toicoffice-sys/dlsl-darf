@@ -424,11 +424,9 @@
   <script>
     var webAppUrl = '';
 
-    google.script.run
-      .withSuccessHandler(function(url) { webAppUrl = url; })
-      .getWebAppUrl();
     google.script.run.withSuccessHandler(function(cfg) {
       if (!cfg) return;
+      webAppUrl = cfg.webAppUrl || '';
       var s = document.getElementById('singleProcessorDisplay');
       var b = document.getElementById('bulkProcessorDisplay');
       if (s) s.textContent = cfg.singleProcessorName || 'Data Processor';

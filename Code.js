@@ -1,3 +1,36 @@
+// =============================================
+// ONE-TIME SETUP — run once from Apps Script editor, then delete
+// =============================================
+function updateScriptProperties() {
+  const props = PropertiesService.getScriptProperties();
+
+  // --- Rename keys in DATA_OWNER_MAP ---
+  const ownerMap = JSON.parse(props.getProperty('DATA_OWNER_MAP') || '{}');
+  if (ownerMap['SMS - Basic Education to Senior High']) {
+    ownerMap['Student Records - IS to SHS'] = ownerMap['SMS - Basic Education to Senior High'];
+    delete ownerMap['SMS - Basic Education to Senior High'];
+  }
+  if (ownerMap['SMS - College, College of Law, Graduate Studies']) {
+    ownerMap['Student Records - College, Law, Graduate Studies'] = ownerMap['SMS - College, College of Law, Graduate Studies'];
+    delete ownerMap['SMS - College, College of Law, Graduate Studies'];
+  }
+  props.setProperty('DATA_OWNER_MAP', JSON.stringify(ownerMap));
+
+  // --- Set SINGLE_PROCESSOR_MAP ---
+  const singleMap = {
+    'Student Records - IS to SHS':                    { name: 'Data Processor', email: 'registrar.integratedschool@dlsl.edu.ph' },
+    'Student Records - College, Law, Graduate Studies': { name: 'Data Processor', email: 'registrar.college@dlsl.edu.ph' },
+    'Employment Records':                              { name: 'Data Processor', email: 'hrd.office@dlsl.edu.ph' },
+    'Financial Records':                               { name: 'Data Processor', email: 'frd@dlsl.edu.ph' },
+    'Institutional Admissions & Testing office':       { name: 'Data Processor', email: 'iato.head@dlsl.edu.ph' }
+  };
+  props.setProperty('SINGLE_PROCESSOR_MAP', JSON.stringify(singleMap));
+
+  Logger.log('Script Properties updated successfully.');
+  Logger.log('DATA_OWNER_MAP: ' + props.getProperty('DATA_OWNER_MAP'));
+  Logger.log('SINGLE_PROCESSOR_MAP: ' + props.getProperty('SINGLE_PROCESSOR_MAP'));
+}
+
 // ============================================
 // DATA ACCESS REQUEST FORM (DARF) SYSTEM v2.2
 // De La Salle Lipa - Data Privacy Office
@@ -58,10 +91,11 @@ function getProcessorForType(requestType, dataSource) {
 // =============================================
 function getPublicConfig() {
   return {
-    singleProcessorName:  CONFIG.SINGLE_REQUEST.DATA_PROCESSOR_NAME || 'Data Processor',
-    bulkProcessorName:    CONFIG.BULK_REQUEST.DATA_PROCESSOR_NAME   || 'Data Processor',
-    bulkProcessorEmail:   CONFIG.BULK_REQUEST.DATA_PROCESSOR_EMAIL  || '',
-    singleProcessorMap:   SINGLE_PROCESSOR_MAP,
+    webAppUrl:           _webAppUrl,
+    singleProcessorName: CONFIG.SINGLE_REQUEST.DATA_PROCESSOR_NAME || 'Data Processor',
+    bulkProcessorName:   CONFIG.BULK_REQUEST.DATA_PROCESSOR_NAME   || 'Data Processor',
+    bulkProcessorEmail:  CONFIG.BULK_REQUEST.DATA_PROCESSOR_EMAIL  || '',
+    singleProcessorMap:  SINGLE_PROCESSOR_MAP,
   };
 }
 

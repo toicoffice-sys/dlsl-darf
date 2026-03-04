@@ -363,11 +363,11 @@
   <script>
     let dataItemCount = 1, internalRecipientCount = 1, externalRecipientCount = 1;
     let lastRequestId = '', webAppUrl = '';
-    google.script.run.withSuccessHandler(function(url) { webAppUrl = url; }).getWebAppUrl();
     var _bulkProcessorName  = 'Data Processor';
     var _bulkProcessorEmail = '';
     google.script.run.withSuccessHandler(function(cfg) {
       if (!cfg) return;
+      webAppUrl           = cfg.webAppUrl          || '';
       _bulkProcessorName  = cfg.bulkProcessorName  || 'Data Processor';
       _bulkProcessorEmail = cfg.bulkProcessorEmail || '';
       document.getElementById('headerProcessorName').textContent = _bulkProcessorName;
