@@ -159,7 +159,7 @@
       <div class="type-badge">📦 OPTION 2 — BULK REQUEST</div>
       <h1>🔐 DATA ACCESS REQUEST FORM</h1>
       <p>De La Salle Lipa - Data Privacy Office</p>
-      <div class="processor-info" id="headerProcessorInfo">⚙️ Data Processor: <strong>Arnel Albis</strong> (arnel.albis@dlsl.edu.ph)</div>
+      <div class="processor-info" id="headerProcessorInfo">⚙️ Data Processor: <strong id="headerProcessorName">Loading...</strong></div>
     </div>
 
     <div class="privacy-notice">
@@ -180,7 +180,7 @@
         <div class="flow-step">👤 Immediate<br>Head</div><span class="flow-arrow">→</span>
         <div class="flow-step">🔐 DPO<br>Review</div><span class="flow-arrow">→</span>
         <div class="flow-step">🏛️ Data<br>Owner</div><span class="flow-arrow">→</span>
-        <div class="flow-step" id="flowProcessorStep">⚙️ Arnel Albis<br>(Processor)</div><span class="flow-arrow">→</span>
+        <div class="flow-step" id="flowProcessorStep">⚙️ <span id="flowProcessorName">Data Processor</span><br>(Processor)</div><span class="flow-arrow">→</span>
         <div class="flow-step">✅ Access via<br>Info Hub</div>
       </div>
       <p style="margin-top:12px; font-size:13px; color:#555;"><strong>⏱️ Timeline:</strong> 1 working day (if data is available) · 5 working days (for new reports)</p>
@@ -364,6 +364,13 @@
     let dataItemCount = 1, internalRecipientCount = 1, externalRecipientCount = 1;
     let lastRequestId = '', webAppUrl = '';
     google.script.run.withSuccessHandler(function(url) { webAppUrl = url; }).getWebAppUrl();
+    var _bulkProcessorName = 'Data Processor';
+    google.script.run.withSuccessHandler(function(cfg) {
+      if (!cfg) return;
+      _bulkProcessorName = cfg.bulkProcessorName || 'Data Processor';
+      document.getElementById('headerProcessorName').textContent = _bulkProcessorName;
+      document.getElementById('flowProcessorName').textContent   = _bulkProcessorName;
+    }).getPublicConfig();
 
     const DATA_OWNER_DISPLAY = {
       'SMS - Basic Education to Senior High': { title: 'IS Registrar', desc: 'School Management System (Basic Ed to SHS)' },
@@ -406,8 +413,8 @@
         flowProcessorStep.innerHTML = '⚙️ ' + proc.name + '<br>(Processor)';
       } else {
         processorBox.classList.remove('visible');
-        headerProcessor.innerHTML = '⚙️ Data Processor: <strong>Arnel Albis</strong> (arnel.albis@dlsl.edu.ph)';
-        flowProcessorStep.innerHTML = '⚙️ Arnel Albis<br>(Processor)';
+        headerProcessor.innerHTML = '⚙️ Data Processor: <strong>' + _bulkProcessorName + '</strong>';
+        flowProcessorStep.innerHTML = '⚙️ ' + _bulkProcessorName + '<br>(Processor)';
       }
     }
 
@@ -451,8 +458,8 @@
       document.getElementById('dateOfRequest').valueAsDate=new Date();
       document.getElementById('dataOwnerInfo').classList.remove('visible');
       document.getElementById('processorInfoDynamic').classList.remove('visible');
-      document.getElementById('headerProcessorInfo').innerHTML = '⚙️ Data Processor: <strong>Arnel Albis</strong> (arnel.albis@dlsl.edu.ph)';
-      document.getElementById('flowProcessorStep').innerHTML = '⚙️ Arnel Albis<br>(Processor)';
+      document.getElementById('headerProcessorName').textContent = _bulkProcessorName;
+      document.getElementById('flowProcessorName').textContent   = _bulkProcessorName;
       document.querySelector('.submit-btn').disabled=false;
       window.scrollTo({top:0,behavior:'smooth'});
     }

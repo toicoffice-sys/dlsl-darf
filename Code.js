@@ -50,6 +50,29 @@ function getProcessorForType(requestType) {
 }
 
 // =============================================
+// PUBLIC CONFIG — safe non-sensitive display data for client HTML
+// =============================================
+function getPublicConfig() {
+  return {
+    singleProcessorName: CONFIG.SINGLE_REQUEST.DATA_PROCESSOR_NAME || 'Data Processor',
+    bulkProcessorName:   CONFIG.BULK_REQUEST.DATA_PROCESSOR_NAME   || 'Data Processor',
+  };
+}
+
+// =============================================
+// HTML ESCAPING — prevent injection in email templates
+// =============================================
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
+// =============================================
 // DATA OWNER ROUTING MAP
 // Loaded from Script Properties (key: DATA_OWNER_MAP) as JSON.
 // To update owners: edit the DATA_OWNER_MAP property in ⚙️ Script Properties.
@@ -251,6 +274,15 @@ function submitDARFRequest(formData) {
     if (!formData.dataSourceCategory || !DATA_OWNER_MAP[formData.dataSourceCategory]) {
       return { success: false, message: 'Please select a valid data source category.' };
     }
+
+    // Length validation — prevent oversized inputs
+    if (formData.requesterName    && formData.requesterName.length    > 200) return { success: false, message: 'Requester name is too long.' };
+    if (formData.requesterOffice  && formData.requesterOffice.length  > 300) return { success: false, message: 'Office/course field is too long.' };
+    if (formData.approverName     && formData.approverName.length     > 200) return { success: false, message: 'Approver name is too long.' };
+    if (formData.approverPosition && formData.approverPosition.length > 300) return { success: false, message: 'Approver position is too long.' };
+    if (formData.securityMeasures && formData.securityMeasures.length > 3000) return { success: false, message: 'Security measures field is too long.' };
+    if (formData.dataItems        && formData.dataItems.length        > 20)   return { success: false, message: 'Too many data items (max 20).' };
+    if (formData.internalRecipients && formData.internalRecipients.length > 20) return { success: false, message: 'Too many internal recipients (max 20).' };
 
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     let sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
@@ -485,6 +517,33 @@ function buildApprovalButtons(approveUrl, rejectUrl, pendingUrl, statusUrl) {
 // STEP 1: SEND APPROVAL TO IMMEDIATE HEAD
 // =============================================
 function sendApprovalEmail(requestId, approverEmail, approverName, role, formData, dataOwnerInfo, requestType) {
+  // Escape all user-provided fields before embedding in HTML
+  const fd = {
+    requesterName:      escapeHtml(formData.requesterName),
+    requesterOffice:    escapeHtml(formData.requesterOffice),
+    requesterEmail:     escapeHtml(formData.requesterEmail),
+    dateOfRequest:      escapeHtml(formData.dateOfRequest),
+    dataSourceCategory: escapeHtml(formData.dataSourceCategory),
+    accessStartDate:    escapeHtml(formData.accessStartDate),
+    accessEndDate:      escapeHtml(formData.accessEndDate),
+    securityMeasures:   escapeHtml(formData.securityMeasures),
+    dataItems: (formData.dataItems || []).map(function(item) { return {
+      description: escapeHtml(item.description),
+      fileType:    escapeHtml(item.fileType),
+      purpose:     escapeHtml(item.purpose)
+    }; }),
+    internalRecipients: (formData.internalRecipients || []).map(function(r) { return {
+      name:          escapeHtml(r.name),
+      position:      escapeHtml(r.position),
+      email:         escapeHtml(r.email),
+      justification: escapeHtml(r.justification)
+    }; }),
+    externalRecipients: (formData.externalRecipients || []).map(function(r) { return {
+      name:        escapeHtml(r.name),
+      purpose:     escapeHtml(r.purpose),
+      hasAgreement: escapeHtml(r.hasAgreement)
+    }; })
+  };
   const token = generateApprovalToken(requestId, approverEmail, role);
   const webAppUrl = _webAppUrl;
   const approveUrl = `${webAppUrl}?action=approve&token=${encodeURIComponent(token)}`;
@@ -508,11 +567,11 @@ function sendApprovalEmail(requestId, approverEmail, approverName, role, formDat
           <table>
             <tr><td class="label">Request ID:</td><td><strong>${requestId}</strong></td></tr>
             <tr><td class="label">Request Type:</td><td>${typeLabel}</td></tr>
-            <tr><td class="label">Requester:</td><td>${formData.requesterName}</td></tr>
-            <tr><td class="label">Office/Course:</td><td>${formData.requesterOffice}</td></tr>
-            <tr><td class="label">Email:</td><td>${formData.requesterEmail}</td></tr>
-            <tr><td class="label">Date of Request:</td><td>${formData.dateOfRequest}</td></tr>
-            <tr><td class="label">Data Source:</td><td>${formData.dataSourceCategory}</td></tr>
+            <tr><td class="label">Requester:</td><td>${fd.requesterName}</td></tr>
+            <tr><td class="label">Office/Course:</td><td>${fd.requesterOffice}</td></tr>
+            <tr><td class="label">Email:</td><td>${fd.requesterEmail}</td></tr>
+            <tr><td class="label">Date of Request:</td><td>${fd.dateOfRequest}</td></tr>
+            <tr><td class="label">Data Source:</td><td>${fd.dataSourceCategory}</td></tr>
             <tr><td class="label">Data Owner:</td><td>${dataOwnerInfo.ownerTitle}</td></tr>
             <tr><td class="label">Assigned Processor:</td><td>${processor.name} (${processor.email})</td></tr>
           </table>
@@ -520,7 +579,7 @@ function sendApprovalEmail(requestId, approverEmail, approverName, role, formDat
 
         <div class="section">
           <h4>📋 Data Being Requested:</h4>
-          ${formData.dataItems.map(item => `
+          ${fd.dataItems.map(item => `
             <p><strong>• ${item.description}</strong><br>
             File Type: ${item.fileType} | Purpose: ${item.purpose}</p>
           `).join('')}
@@ -528,17 +587,17 @@ function sendApprovalEmail(requestId, approverEmail, approverName, role, formDat
 
         <div class="section">
           <h4>👥 Internal Recipients:</h4>
-          ${formData.internalRecipients.map(r => `
+          ${fd.internalRecipients.map(r => `
             <p><strong>• ${r.name}</strong> (${r.position})<br>
             Email: ${r.email}<br>
             Justification: ${r.justification}</p>
           `).join('')}
         </div>
 
-        ${formData.externalRecipients.length > 0 ? `
+        ${fd.externalRecipients.length > 0 ? `
         <div class="section">
           <h4>🌐 External Recipients:</h4>
-          ${formData.externalRecipients.map(r => `
+          ${fd.externalRecipients.map(r => `
             <p><strong>• ${r.name}</strong><br>
             Purpose: ${r.purpose}<br>
             MOA/NDA: ${r.hasAgreement}</p>
@@ -547,12 +606,12 @@ function sendApprovalEmail(requestId, approverEmail, approverName, role, formDat
 
         <div class="section">
           <h4>📅 Access Period:</h4>
-          <p><strong>Start:</strong> ${formData.accessStartDate} | <strong>End:</strong> ${formData.accessEndDate}</p>
+          <p><strong>Start:</strong> ${fd.accessStartDate} | <strong>End:</strong> ${fd.accessEndDate}</p>
         </div>
 
         <div class="section">
           <h4>🔒 Security Measures:</h4>
-          <p>${formData.securityMeasures}</p>
+          <p>${fd.securityMeasures}</p>
         </div>
 
         ${buildApprovalButtons(approveUrl, rejectUrl, pendingUrl, statusUrl)}

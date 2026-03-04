@@ -280,7 +280,7 @@
       <div class="type-badge">📄 OPTION 1 — SINGLE REQUEST</div>
       <h1>🔐 DATA ACCESS REQUEST FORM</h1>
       <p>De La Salle Lipa - Data Privacy Office</p>
-      <div class="processor-info">⚙️ Data Processor: <strong>Daisy Reyes</strong> (toic.office@dlsl.edu.ph)</div>
+      <div class="processor-info" id="headerProcessorInfo">⚙️ Data Processor: <strong id="headerProcessorName">Loading...</strong></div>
     </div>
 
     <div class="privacy-notice">
@@ -301,7 +301,7 @@
         <div class="flow-step">👤 Immediate<br>Head</div><span class="flow-arrow">→</span>
         <div class="flow-step">🔐 DPO<br>Review</div><span class="flow-arrow">→</span>
         <div class="flow-step">🏛️ Data<br>Owner</div><span class="flow-arrow">→</span>
-        <div class="flow-step">⚙️ Daisy Reyes<br>(Processor)</div><span class="flow-arrow">→</span>
+        <div class="flow-step" id="flowProcessorStep">⚙️ <span id="flowProcessorName">Data Processor</span><br>(Processor)</div><span class="flow-arrow">→</span>
         <div class="flow-step">✅ Access via<br>Info Hub</div>
       </div>
       <p style="margin-top:12px; font-size:13px; color:#555;">
@@ -522,6 +522,12 @@
     let webAppUrl = '';
 
     google.script.run.withSuccessHandler(function(url) { webAppUrl = url; }).getWebAppUrl();
+    google.script.run.withSuccessHandler(function(cfg) {
+      if (!cfg) return;
+      var n = cfg.singleProcessorName || 'Data Processor';
+      document.getElementById('headerProcessorName').textContent = n;
+      document.getElementById('flowProcessorName').textContent = n;
+    }).getPublicConfig();
 
     const DATA_OWNER_DISPLAY = {
       'SMS - Basic Education to Senior High': { title: 'IS Registrar', desc: 'School Management System (Basic Education to Senior High School)' },

@@ -356,7 +356,7 @@
         <div class="option-details">
           <div class="detail-row">
             <span class="detail-icon">⚙️</span>
-            <span>Processed by: <strong>Daisy Reyes</strong></span>
+            <span>Processed by: <strong id="singleProcessorDisplay">Loading...</strong></span>
           </div>
           <div class="detail-row">
             <span class="detail-icon">⏱️</span>
@@ -383,7 +383,7 @@
         <div class="option-details">
           <div class="detail-row">
             <span class="detail-icon">⚙️</span>
-            <span>Processed by: <strong>Arnel Albis</strong></span>
+            <span>Processed by: <strong id="bulkProcessorDisplay">Loading...</strong></span>
           </div>
           <div class="detail-row">
             <span class="detail-icon">⏱️</span>
@@ -427,6 +427,13 @@
     google.script.run
       .withSuccessHandler(function(url) { webAppUrl = url; })
       .getWebAppUrl();
+    google.script.run.withSuccessHandler(function(cfg) {
+      if (!cfg) return;
+      var s = document.getElementById('singleProcessorDisplay');
+      var b = document.getElementById('bulkProcessorDisplay');
+      if (s) s.textContent = cfg.singleProcessorName || 'Data Processor';
+      if (b) b.textContent = cfg.bulkProcessorName   || 'Data Processor';
+    }).getPublicConfig();
 
     function navigateTo(type) {
       document.getElementById('loadingScreen').classList.add('visible');

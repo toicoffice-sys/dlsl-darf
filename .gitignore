@@ -1,0 +1,13 @@
+# clasp credentials — never commit
+.clasprc.json
+
+# Environment variables
+.env
+*.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node (if ever used locally)
+node_modules/
