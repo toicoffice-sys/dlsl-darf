@@ -84,40 +84,31 @@ function escapeHtml(str) {
 // Loaded from Script Properties (key: DATA_OWNER_MAP) as JSON.
 // To update owners: edit the DATA_OWNER_MAP property in ⚙️ Script Properties.
 // =============================================
-// Auto-migrate renamed DATA_OWNER_MAP keys and load map
+// DATA_OWNER_MAP — loaded from Script Properties.
+// Supports old key names for backward compatibility (no writes needed).
 const DATA_OWNER_MAP = (() => {
   const map = JSON.parse(_props.getProperty('DATA_OWNER_MAP') || '{}');
-  let changed = false;
-  const renames = {
-    'SMS - Basic Education to Senior High':          'Student Records - IS to SHS',
-    'SMS - College, College of Law, Graduate Studies': 'Student Records - College, Law, Graduate Studies'
-  };
-  for (const oldKey in renames) {
-    const newKey = renames[oldKey];
-    if (map[oldKey] && !map[newKey]) {
-      map[newKey] = map[oldKey];
-      delete map[oldKey];
-      changed = true;
-    }
-  }
-  if (changed) _props.setProperty('DATA_OWNER_MAP', JSON.stringify(map));
+  if (!map['Student Records - IS to SHS'] && map['SMS - Basic Education to Senior High'])
+    map['Student Records - IS to SHS'] = map['SMS - Basic Education to Senior High'];
+  if (!map['Student Records - College, Law, Graduate Studies'] && map['SMS - College, College of Law, Graduate Studies'])
+    map['Student Records - College, Law, Graduate Studies'] = map['SMS - College, College of Law, Graduate Studies'];
   return map;
 })();
 
-// Per-data-source processor routing for single requests.
-// Defaults are used if SINGLE_PROCESSOR_MAP is not set in Script Properties.
+// SINGLE_PROCESSOR_MAP — loaded from Script Properties with built-in defaults.
+// Override by setting the SINGLE_PROCESSOR_MAP Script Property (JSON).
+const _SINGLE_PROCESSOR_DEFAULTS = {
+  'Student Records - IS to SHS':                      { name: 'Data Processor', email: 'registrar.integratedschool@dlsl.edu.ph' },
+  'Student Records - College, Law, Graduate Studies': { name: 'Data Processor', email: 'registrar.college@dlsl.edu.ph' },
+  'Employment Records':                               { name: 'Data Processor', email: 'hrd.office@dlsl.edu.ph' },
+  'Financial Records':                                { name: 'Data Processor', email: 'frd@dlsl.edu.ph' },
+  'Institutional Admissions & Testing office':        { name: 'Data Processor', email: 'iato.head@dlsl.edu.ph' }
+};
 const SINGLE_PROCESSOR_MAP = (() => {
-  const stored = _props.getProperty('SINGLE_PROCESSOR_MAP');
-  if (stored) return JSON.parse(stored);
-  const defaults = {
-    'Student Records - IS to SHS':                      { name: 'Data Processor', email: 'registrar.integratedschool@dlsl.edu.ph' },
-    'Student Records - College, Law, Graduate Studies': { name: 'Data Processor', email: 'registrar.college@dlsl.edu.ph' },
-    'Employment Records':                               { name: 'Data Processor', email: 'hrd.office@dlsl.edu.ph' },
-    'Financial Records':                                { name: 'Data Processor', email: 'frd@dlsl.edu.ph' },
-    'Institutional Admissions & Testing office':        { name: 'Data Processor', email: 'iato.head@dlsl.edu.ph' }
-  };
-  _props.setProperty('SINGLE_PROCESSOR_MAP', JSON.stringify(defaults));
-  return defaults;
+  try {
+    const stored = _props.getProperty('SINGLE_PROCESSOR_MAP');
+    return stored ? JSON.parse(stored) : _SINGLE_PROCESSOR_DEFAULTS;
+  } catch (e) { return _SINGLE_PROCESSOR_DEFAULTS; }
 })();
 
 // =============================================
