@@ -364,12 +364,18 @@
     let dataItemCount = 1, internalRecipientCount = 1, externalRecipientCount = 1;
     let lastRequestId = '', webAppUrl = '';
     google.script.run.withSuccessHandler(function(url) { webAppUrl = url; }).getWebAppUrl();
-    var _bulkProcessorName = 'Data Processor';
+    var _bulkProcessorName  = 'Data Processor';
+    var _bulkProcessorEmail = '';
     google.script.run.withSuccessHandler(function(cfg) {
       if (!cfg) return;
-      _bulkProcessorName = cfg.bulkProcessorName || 'Data Processor';
+      _bulkProcessorName  = cfg.bulkProcessorName  || 'Data Processor';
+      _bulkProcessorEmail = cfg.bulkProcessorEmail || '';
       document.getElementById('headerProcessorName').textContent = _bulkProcessorName;
       document.getElementById('flowProcessorName').textContent   = _bulkProcessorName;
+      var headerInfo = document.getElementById('headerProcessorInfo');
+      if (_bulkProcessorEmail) {
+        headerInfo.innerHTML = '⚙️ Data Processor: <strong>' + _bulkProcessorName + '</strong> (' + _bulkProcessorEmail + ')';
+      }
     }).getPublicConfig();
 
     const DATA_OWNER_DISPLAY = {
@@ -406,11 +412,14 @@
       }
 
       if (cat && DATA_PROCESSOR_MAP[cat]) {
-        var proc = DATA_PROCESSOR_MAP[cat];
-        document.getElementById('processorInfoText').textContent = proc.name;
+        var emailPart = _bulkProcessorEmail ? ' (<a href="mailto:' + _bulkProcessorEmail + '" style="color:#1B5E20;">' + _bulkProcessorEmail + '</a>)' : '';
+        document.getElementById('processorInfoText').innerHTML = _bulkProcessorName + emailPart;
         processorBox.classList.add('visible');
-        headerProcessor.innerHTML = '⚙️ Data Processor: <strong>' + proc.name + '</strong>';
-        flowProcessorStep.innerHTML = '⚙️ ' + proc.name + '<br>(Processor)';
+        var headerLabel = _bulkProcessorEmail
+          ? '⚙️ Data Processor: <strong>' + _bulkProcessorName + '</strong> (' + _bulkProcessorEmail + ')'
+          : '⚙️ Data Processor: <strong>' + _bulkProcessorName + '</strong>';
+        headerProcessor.innerHTML = headerLabel;
+        flowProcessorStep.innerHTML = '⚙️ ' + _bulkProcessorName + '<br>(Processor)';
       } else {
         processorBox.classList.remove('visible');
         headerProcessor.innerHTML = '⚙️ Data Processor: <strong>' + _bulkProcessorName + '</strong>';

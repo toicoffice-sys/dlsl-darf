@@ -54,8 +54,9 @@ function getProcessorForType(requestType) {
 // =============================================
 function getPublicConfig() {
   return {
-    singleProcessorName: CONFIG.SINGLE_REQUEST.DATA_PROCESSOR_NAME || 'Data Processor',
-    bulkProcessorName:   CONFIG.BULK_REQUEST.DATA_PROCESSOR_NAME   || 'Data Processor',
+    singleProcessorName:  CONFIG.SINGLE_REQUEST.DATA_PROCESSOR_NAME  || 'Data Processor',
+    bulkProcessorName:    CONFIG.BULK_REQUEST.DATA_PROCESSOR_NAME    || 'Data Processor',
+    bulkProcessorEmail:   CONFIG.BULK_REQUEST.DATA_PROCESSOR_EMAIL   || '',
   };
 }
 
