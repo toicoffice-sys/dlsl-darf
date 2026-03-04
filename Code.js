@@ -42,9 +42,13 @@ const CONFIG = {
   DATA_PROCESSOR_EMAIL: _props.getProperty('SINGLE_PROCESSOR_EMAIL'),
 };
 
-function getProcessorForType(requestType) {
+function getProcessorForType(requestType, dataSource) {
   if (requestType === 'bulk') {
     return { name: CONFIG.BULK_REQUEST.DATA_PROCESSOR_NAME, email: CONFIG.BULK_REQUEST.DATA_PROCESSOR_EMAIL };
+  }
+  // Single request: use per-data-source mapping if available
+  if (dataSource && SINGLE_PROCESSOR_MAP[dataSource]) {
+    return SINGLE_PROCESSOR_MAP[dataSource];
   }
   return { name: CONFIG.SINGLE_REQUEST.DATA_PROCESSOR_NAME, email: CONFIG.SINGLE_REQUEST.DATA_PROCESSOR_EMAIL };
 }
@@ -54,9 +58,10 @@ function getProcessorForType(requestType) {
 // =============================================
 function getPublicConfig() {
   return {
-    singleProcessorName:  CONFIG.SINGLE_REQUEST.DATA_PROCESSOR_NAME  || 'Data Processor',
-    bulkProcessorName:    CONFIG.BULK_REQUEST.DATA_PROCESSOR_NAME    || 'Data Processor',
-    bulkProcessorEmail:   CONFIG.BULK_REQUEST.DATA_PROCESSOR_EMAIL   || '',
+    singleProcessorName:  CONFIG.SINGLE_REQUEST.DATA_PROCESSOR_NAME || 'Data Processor',
+    bulkProcessorName:    CONFIG.BULK_REQUEST.DATA_PROCESSOR_NAME   || 'Data Processor',
+    bulkProcessorEmail:   CONFIG.BULK_REQUEST.DATA_PROCESSOR_EMAIL  || '',
+    singleProcessorMap:   SINGLE_PROCESSOR_MAP,
   };
 }
 
@@ -79,6 +84,11 @@ function escapeHtml(str) {
 // To update owners: edit the DATA_OWNER_MAP property in ⚙️ Script Properties.
 // =============================================
 const DATA_OWNER_MAP = JSON.parse(_props.getProperty('DATA_OWNER_MAP') || '{}');
+
+// Per-data-source processor routing for single requests.
+// Stored in Script Properties as SINGLE_PROCESSOR_MAP (JSON).
+// Example entry: { "Employment Records": { "name": "Data Processor", "email": "hrd.office@dlsl.edu.ph" } }
+const SINGLE_PROCESSOR_MAP = JSON.parse(_props.getProperty('SINGLE_PROCESSOR_MAP') || '{}');
 
 // =============================================
 // WEB APP ENTRY POINT
@@ -293,7 +303,7 @@ function submitDARFRequest(formData) {
     }
 
     const requestType = formData.requestType || 'single';
-    const processor = getProcessorForType(requestType);
+    const processor = getProcessorForType(requestType, formData.dataSourceCategory);
     const typePrefix = requestType === 'bulk' ? 'DARF-B-' : 'DARF-';
 
     const requestId = typePrefix + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd') + '-' + Utilities.getUuid().substring(0, 6).toUpperCase();

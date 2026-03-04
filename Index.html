@@ -363,6 +363,10 @@
             <p><strong id="dataOwnerTitle"></strong></p>
             <p id="dataOwnerDesc"></p>
           </div>
+          <div id="processorInfoDynamic" class="data-owner-info" style="display:none; background:#E3F2FD; border-color:#1976D2; margin-top:10px;">
+            <h4>⚙️ Assigned Data Processor:</h4>
+            <p id="processorInfoText"></p>
+          </div>
         </div>
 
         <!-- Section 3: Personal Data Being Requested -->
@@ -522,11 +526,13 @@
     let webAppUrl = '';
 
     google.script.run.withSuccessHandler(function(url) { webAppUrl = url; }).getWebAppUrl();
+    var _singleProcessorMap = {};
     google.script.run.withSuccessHandler(function(cfg) {
       if (!cfg) return;
       var n = cfg.singleProcessorName || 'Data Processor';
       document.getElementById('headerProcessorName').textContent = n;
       document.getElementById('flowProcessorName').textContent = n;
+      _singleProcessorMap = cfg.singleProcessorMap || {};
     }).getPublicConfig();
 
     const DATA_OWNER_DISPLAY = {
@@ -542,11 +548,26 @@
     function onDataSourceChange() {
       var cat = document.getElementById('dataSourceCategory').value;
       var infoBox = document.getElementById('dataOwnerInfo');
+      var procBox = document.getElementById('processorInfoDynamic');
+
       if (cat && DATA_OWNER_DISPLAY[cat]) {
         document.getElementById('dataOwnerTitle').textContent = DATA_OWNER_DISPLAY[cat].title;
         document.getElementById('dataOwnerDesc').textContent  = DATA_OWNER_DISPLAY[cat].desc;
         infoBox.classList.add('visible');
-      } else { infoBox.classList.remove('visible'); }
+      } else {
+        infoBox.classList.remove('visible');
+      }
+
+      if (cat && _singleProcessorMap[cat]) {
+        var proc = _singleProcessorMap[cat];
+        var emailPart = proc.email ? ' — <a href="mailto:' + proc.email + '" style="color:#1565C0;">' + proc.email + '</a>' : '';
+        document.getElementById('processorInfoText').innerHTML = (proc.name || 'Data Processor') + emailPart;
+        procBox.style.display = 'block';
+        document.getElementById('headerProcessorName').textContent = proc.name || 'Data Processor';
+        document.getElementById('flowProcessorName').textContent   = proc.name || 'Data Processor';
+      } else {
+        procBox.style.display = 'none';
+      }
     }
 
     function goBack() {
