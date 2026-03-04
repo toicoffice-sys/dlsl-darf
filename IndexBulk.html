@@ -381,11 +381,11 @@
     };
 
     const DATA_PROCESSOR_MAP = {
-      'SMS - Basic Education to Senior High':          { name: 'Arnel Albis', email: 'arnel.albis@dlsl.edu.ph' },
-      'SMS - College, College of Law, Graduate Studies': { name: 'Arnel Albis', email: 'arnel.albis@dlsl.edu.ph' },
-      'Employment Records':                            { name: 'Arnel Albis', email: 'arnel.albis@dlsl.edu.ph' },
-      'Financial Records':                             { name: 'Arnel Albis', email: 'arnel.albis@dlsl.edu.ph' },
-      'Institutional Admissions & Testing office':     { name: 'Randolph Renegado', email: 'toic.office@dlsl.edu.ph' }
+      'SMS - Basic Education to Senior High':          { name: 'Data Processor', email: '' },
+      'SMS - College, College of Law, Graduate Studies': { name: 'Data Processor', email: '' },
+      'Employment Records':                            { name: 'Data Processor', email: '' },
+      'Financial Records':                             { name: 'Data Processor', email: '' },
+      'Institutional Admissions & Testing office':     { name: 'Data Processor', email: '' }
     };
 
     document.getElementById('dateOfRequest').valueAsDate = new Date();
@@ -407,9 +407,9 @@
 
       if (cat && DATA_PROCESSOR_MAP[cat]) {
         var proc = DATA_PROCESSOR_MAP[cat];
-        document.getElementById('processorInfoText').innerHTML = proc.name + ' (<a href="mailto:' + proc.email + '" style="color:#1B5E20;">' + proc.email + '</a>)';
+        document.getElementById('processorInfoText').textContent = proc.name;
         processorBox.classList.add('visible');
-        headerProcessor.innerHTML = '⚙️ Data Processor: <strong>' + proc.name + '</strong> (' + proc.email + ')';
+        headerProcessor.innerHTML = '⚙️ Data Processor: <strong>' + proc.name + '</strong>';
         flowProcessorStep.innerHTML = '⚙️ ' + proc.name + '<br>(Processor)';
       } else {
         processorBox.classList.remove('visible');
@@ -493,7 +493,7 @@
         if(n&&p) extR.push({name:n,purpose:p,hasAgreement:a+(l?' - '+l:'')});
       });
 
-      var proc = DATA_PROCESSOR_MAP[ds] || { name: 'Arnel Albis', email: 'arnel.albis@dlsl.edu.ph' };
+      var proc = DATA_PROCESSOR_MAP[ds] || { name: 'Data Processor', email: '' };
 
       var formData={
         requesterName:document.getElementById('requesterName').value,
