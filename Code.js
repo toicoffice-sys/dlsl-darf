@@ -10,9 +10,11 @@
 // To update: Apps Script editor → ⚙️ Project Settings → Script Properties
 // =============================================
 const _props = PropertiesService.getScriptProperties();
+// Single bulk fetch — replaces 13+ individual getProperty() calls
+const _p = _props.getProperties();
 
 // Always use stored production /exec URL in emails — never /dev
-const _webAppUrl = _props.getProperty('WEB_APP_URL') || ScriptApp.getService().getUrl();
+const _webAppUrl = _p['WEB_APP_URL'] || ScriptApp.getService().getUrl();
 
 const CONFIG = {
   // Non-sensitive — stays in code
@@ -23,23 +25,23 @@ const CONFIG = {
   PROCESSING_DAYS_NEW_REPORT: '5 working days',
 
   // Sensitive — loaded from Script Properties
-  DPO_EMAIL:         _props.getProperty('DPO_EMAIL'),
-  SHEET_NAME:        _props.getProperty('SHEET_NAME'),
-  APPROVAL_SHEET:    _props.getProperty('APPROVAL_SHEET'),
-  DATA_OWNERS_SHEET: _props.getProperty('DATA_OWNERS_SHEET'),
+  DPO_EMAIL:         _p['DPO_EMAIL'],
+  SHEET_NAME:        _p['SHEET_NAME'],
+  APPROVAL_SHEET:    _p['APPROVAL_SHEET'],
+  DATA_OWNERS_SHEET: _p['DATA_OWNERS_SHEET'],
 
   SINGLE_REQUEST: {
-    DATA_PROCESSOR_NAME:  _props.getProperty('SINGLE_PROCESSOR_NAME'),
-    DATA_PROCESSOR_EMAIL: _props.getProperty('SINGLE_PROCESSOR_EMAIL'),
+    DATA_PROCESSOR_NAME:  _p['SINGLE_PROCESSOR_NAME'],
+    DATA_PROCESSOR_EMAIL: _p['SINGLE_PROCESSOR_EMAIL'],
   },
   BULK_REQUEST: {
-    DATA_PROCESSOR_NAME:  _props.getProperty('BULK_PROCESSOR_NAME'),
-    DATA_PROCESSOR_EMAIL: _props.getProperty('BULK_PROCESSOR_EMAIL'),
+    DATA_PROCESSOR_NAME:  _p['BULK_PROCESSOR_NAME'],
+    DATA_PROCESSOR_EMAIL: _p['BULK_PROCESSOR_EMAIL'],
   },
 
   // Kept for backward compatibility — mirrors SINGLE_REQUEST
-  DATA_PROCESSOR_NAME:  _props.getProperty('SINGLE_PROCESSOR_NAME'),
-  DATA_PROCESSOR_EMAIL: _props.getProperty('SINGLE_PROCESSOR_EMAIL'),
+  DATA_PROCESSOR_NAME:  _p['SINGLE_PROCESSOR_NAME'],
+  DATA_PROCESSOR_EMAIL: _p['SINGLE_PROCESSOR_EMAIL'],
 };
 
 function getProcessorForType(requestType, dataSource) {
@@ -87,7 +89,7 @@ function escapeHtml(str) {
 // DATA_OWNER_MAP — loaded from Script Properties.
 // Supports old key names for backward compatibility (no writes needed).
 const DATA_OWNER_MAP = (() => {
-  const map = JSON.parse(_props.getProperty('DATA_OWNER_MAP') || '{}');
+  const map = JSON.parse(_p['DATA_OWNER_MAP'] || '{}');
   if (!map['Student Records - IS to SHS'] && map['SMS - Basic Education to Senior High'])
     map['Student Records - IS to SHS'] = map['SMS - Basic Education to Senior High'];
   if (!map['Student Records - College, Law, Graduate Studies'] && map['SMS - College, College of Law, Graduate Studies'])
@@ -106,8 +108,7 @@ const _SINGLE_PROCESSOR_DEFAULTS = {
 };
 const SINGLE_PROCESSOR_MAP = (() => {
   try {
-    const stored = _props.getProperty('SINGLE_PROCESSOR_MAP');
-    return stored ? JSON.parse(stored) : _SINGLE_PROCESSOR_DEFAULTS;
+    return _p['SINGLE_PROCESSOR_MAP'] ? JSON.parse(_p['SINGLE_PROCESSOR_MAP']) : _SINGLE_PROCESSOR_DEFAULTS;
   } catch (e) { return _SINGLE_PROCESSOR_DEFAULTS; }
 })();
 
