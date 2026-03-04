@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Access Request Form - Single Request - DLSL</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+
+    .back-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .back-nav:hover { background: rgba(255,255,255,0.2); color: white; }
+
+    .header {
+      background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+    .header .type-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      padding: 6px 18px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+    .header h1 { font-size: 32px; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+    .header p  { font-size: 16px; opacity: 0.95; }
+    .header .processor-info {
+      margin-top: 12px;
+      background: rgba(255,255,255,0.12);
+      display: inline-block;
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+
+    .privacy-notice {
+      background: #E8F5E9;
+      border-left: 5px solid #2E7D32;
+      padding: 20px;
+      margin: 20px 40px;
+      border-radius: 5px;
+    }
+    .privacy-notice h3 { color: #1B5E20; margin-bottom: 10px; }
+    .privacy-notice p, .privacy-notice ul { font-size: 14px; line-height: 1.6; color: #666; }
+    .privacy-notice ul { margin: 10px 0 10px 20px; }
+
+    .process-flow {
+      background: #E8F5E9;
+      border: 2px solid #1B5E20;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 40px;
+      text-align: center;
+    }
+    .process-flow h3 { color: #1B5E20; margin-bottom: 15px; }
+    .flow-steps { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 5px; }
+    .flow-step { background: white; border: 2px solid #1B5E20; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 600; color: #1B5E20; text-align: center; min-width: 110px; }
+    .flow-arrow { color: #1B5E20; font-size: 20px; font-weight: bold; }
+    .pending-note { background: #FFF8E1; border: 1px solid #FFB300; border-radius: 6px; padding: 10px 14px; margin: 12px auto 0; font-size: 12px; color: #555; max-width: 720px; text-align: left; }
+    .pending-note strong { color: #F57F17; }
+
+    .form-content { padding: 40px; }
+    .section { margin-bottom: 40px; padding: 30px; background: #f8f9fa; border-radius: 10px; border-left: 5px solid #1B5E20; }
+    .section-title { color: #1B5E20; font-size: 24px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #1B5E20; display: flex; align-items: center; gap: 10px; }
+    .form-group { margin-bottom: 25px; }
+    label { display: block; margin-bottom: 8px; color: #333; font-weight: 600; font-size: 15px; }
+    .required { color: #f44336; }
+
+    input[type="text"], input[type="email"], input[type="date"], textarea, select {
+      width: 100%; padding: 12px 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; transition: all 0.3s; font-family: inherit;
+    }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: #1B5E20; box-shadow: 0 0 0 3px rgba(27, 94, 32, 0.1); }
+    textarea { resize: vertical; min-height: 100px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    .data-item, .recipient-item {
+      background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #ddd; position: relative;
+    }
+    .remove-btn { position: absolute; top: 10px; right: 10px; background: #f44336; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 18px; transition: all 0.3s; }
+    .remove-btn:hover { background: #d32f2f; transform: scale(1.1); }
+    .add-btn { background: #1B5E20; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+    .add-btn:hover { background: #2E7D32; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(27, 94, 32, 0.3); }
+
+    .submit-btn { background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%); color: white; border: none; padding: 18px 50px; border-radius: 50px; cursor: pointer; font-size: 18px; font-weight: 700; transition: all 0.3s; width: 100%; margin-top: 20px; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 5px 20px rgba(27, 94, 32, 0.4); }
+    .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(27, 94, 32, 0.5); }
+    .submit-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .helper-text { font-size: 13px; color: #666; margin-top: 5px; font-style: italic; }
+    .checkbox-group { display: flex; align-items: flex-start; gap: 10px; margin: 10px 0; }
+    .checkbox-group input[type="checkbox"] { width: auto; margin: 0; margin-top: 4px; flex-shrink: 0; }
+
+    .alert { padding: 15px 20px; border-radius: 8px; margin: 20px 0; display: none; }
+    .alert-error { background: #FFEBEE; border-left: 5px solid #f44336; color: #C62828; }
+
+    .loading { display: none; text-align: center; padding: 30px; }
+    .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #1B5E20; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    .icon { font-size: 24px; }
+
+    .data-owner-info { display: none; background: #E3F2FD; border: 2px solid #1976D2; border-radius: 8px; padding: 15px; margin-top: 15px; animation: fadeIn 0.3s ease; }
+    .data-owner-info.visible { display: block; }
+    .data-owner-info h4 { color: #1565C0; margin-bottom: 8px; }
+    .data-owner-info p { font-size: 14px; color: #555; margin: 4px 0; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ========================================= */
+    /* SUCCESS MODAL — Wide & Improved           */
+    /* ========================================= */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: linear-gradient(135deg, rgba(27,94,32,0.85) 0%, rgba(46,125,50,0.80) 100%);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      z-index: 1000; align-items: center; justify-content: center; padding: 24px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: linear-gradient(180deg, #f0faf2 0%, #ffffff 40%);
+      border-radius: 24px; max-width: 720px; width: 100%;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(27,94,32,0.1);
+      overflow: hidden;
+      animation: modalPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes modalPop {
+      from { opacity: 0; transform: scale(0.85) translateY(30px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-header-success {
+      background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 50%, #43A047 100%);
+      padding: 44px 40px 34px; text-align: center; color: white;
+      position: relative; overflow: hidden;
+    }
+    .modal-header-success::before {
+      content: ''; position: absolute; top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .modal-check {
+      width: 80px; height: 80px;
+      background: rgba(255,255,255,0.15); border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 40px; margin: 0 auto 18px;
+      animation: checkPulse 2s ease-in-out infinite;
+    }
+    @keyframes checkPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.3); }
+      50% { box-shadow: 0 0 0 12px rgba(255,255,255,0); }
+    }
+    .modal-header-success h2 { font-size: 28px; margin-bottom: 6px; font-weight: 800; letter-spacing: 0.3px; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    .modal-header-success p  { font-size: 15px; opacity: 0.9; font-weight: 400; }
+    .modal-body-success { padding: 36px 40px 40px; text-align: center; }
+    .request-id-box {
+      background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+      border: 2px dashed #1B5E20; border-radius: 16px;
+      padding: 28px 24px; margin: 20px 0 24px; position: relative;
+    }
+    .request-id-box .label { font-size: 11px; color: #888; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
+    .request-id-box .id-value { font-size: 32px; font-weight: 900; color: #1B5E20; letter-spacing: 2px; word-break: break-all; line-height: 1.3; }
+    .request-type-pill {
+      display: inline-block; padding: 5px 18px; border-radius: 20px;
+      font-size: 12px; font-weight: 700; margin-top: 12px; letter-spacing: 0.5px;
+    }
+    .pill-single { background: #1B5E20; color: white; }
+    .pill-bulk   { background: #004D40; color: white; }
+    .copy-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 24px; border: 2px solid #1B5E20; background: white; color: #1B5E20;
+      border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer;
+      transition: all 0.25s; margin-top: 14px;
+    }
+    .copy-btn:hover { background: #1B5E20; color: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(27,94,32,0.3); }
+    .modal-reminder {
+      background: linear-gradient(135deg, #FFF8E1 0%, #FFFDE7 100%);
+      border-left: 4px solid #FFB300; border-radius: 0 12px 12px 0;
+      padding: 16px 20px; text-align: left; font-size: 14px; color: #555;
+      margin: 20px 0; line-height: 1.6;
+    }
+    .modal-reminder strong { color: #E65100; }
+    .modal-actions { display: flex; gap: 12px; margin-top: 28px; }
+    .modal-btn {
+      flex: 1; padding: 16px 20px; border: none; border-radius: 14px;
+      font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.25s;
+      display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: 0.3px;
+    }
+    .modal-btn:hover { transform: translateY(-2px); }
+    .btn-track { background: linear-gradient(135deg, #1B5E20, #2E7D32); color: white; box-shadow: 0 4px 16px rgba(27,94,32,0.35); }
+    .btn-track:hover { box-shadow: 0 6px 24px rgba(27,94,32,0.5); }
+    .btn-new   { background: #f5f5f5; color: #333; border: 2px solid #ddd; }
+    .btn-new:hover { background: #e8e8e8; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .btn-home  { background: #E8F5E9; color: #1B5E20; border: 2px solid #C8E6C9; }
+    .btn-home:hover { background: #C8E6C9; box-shadow: 0 4px 12px rgba(27,94,32,0.2); }
+
+    .copyright-footer {
+      text-align: center;
+      padding: 24px 20px;
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .copyright-footer p { margin: 0; }
+    .copyright-footer .aom {
+      font-size: 16px;
+      font-weight: 800;
+      color: rgba(255,255,255,0.75);
+      letter-spacing: 1.5px;
+      margin-bottom: 2px;
+    }
+    .copyright-footer .aom-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+    .copyright-footer .dept {
+      font-weight: 600;
+      color: rgba(255,255,255,0.45);
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    @media (max-width: 768px) {
+      .form-row { grid-template-columns: 1fr; }
+      .form-content { padding: 20px; }
+      .section { padding: 20px; }
+      .header h1 { font-size: 24px; }
+      .privacy-notice, .process-flow { margin: 20px 15px; }
+      .flow-steps { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); }
+      .modal-actions { flex-direction: column; }
+      .modal { margin: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div style="max-width: 1200px; margin: 0 auto;">
+    <a class="back-nav" onclick="goBack()">← Back to Request Options</a>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <div class="type-badge">📄 OPTION 1 — SINGLE REQUEST</div>
+      <h1>🔐 DATA ACCESS REQUEST FORM</h1>
+      <p>De La Salle Lipa - Data Privacy Office</p>
+      <div class="processor-info">⚙️ Data Processor: <strong>Daisy Reyes</strong> (toic.office@dlsl.edu.ph)</div>
+    </div>
+
+    <div class="privacy-notice">
+      <h3>📋 Data Privacy Notice</h3>
+      <p>As part of its efforts to streamline the processing of personal data access requests within the institution, the Data Privacy Office collects the following personal information through this form:</p>
+      <ul>
+        <li>Name, Office and Position/Course and Year Level, and Email Address of Data Requester</li>
+        <li>Name, Office and Position/Course and Year Level, Email Address of Data Recipients</li>
+        <li>Name, Position of Approving Authorities, Data Owner, and Data Protection Officer</li>
+      </ul>
+      <p>The collected personal information will be used solely for determining the legitimacy of the request and identifying the persons accountable for the requested data. By filling out this form, you confirm that you freely and voluntarily give consent to the collection and processing of your personal information.</p>
+    </div>
+
+    <div class="process-flow">
+      <h3>📊 Approval Workflow</h3>
+      <div class="flow-steps">
+        <div class="flow-step">📝 Submit<br>Request</div><span class="flow-arrow">→</span>
+        <div class="flow-step">👤 Immediate<br>Head</div><span class="flow-arrow">→</span>
+        <div class="flow-step">🔐 DPO<br>Review</div><span class="flow-arrow">→</span>
+        <div class="flow-step">🏛️ Data<br>Owner</div><span class="flow-arrow">→</span>
+        <div class="flow-step">⚙️ Daisy Reyes<br>(Processor)</div><span class="flow-arrow">→</span>
+        <div class="flow-step">✅ Access via<br>Info Hub</div>
+      </div>
+      <p style="margin-top:12px; font-size:13px; color:#555;">
+        <strong>⏱️ Timeline:</strong> 1 working day (if data is available) · 5 working days (for new reports)
+      </p>
+      <div class="pending-note">
+        <strong>⏳ Pending with Recommendation:</strong> Any approver may place your request on hold with a recommendation for you to follow.
+      </div>
+    </div>
+
+    <div class="form-content">
+      <div id="alertError" class="alert alert-error"></div>
+      <div id="loading" class="loading"><div class="spinner"></div><p>Submitting your request...</p></div>
+
+      <form id="darfForm">
+        <!-- Section 1: Requester Information -->
+        <div class="section">
+          <h2 class="section-title"><span class="icon">👤</span>Data Requester Information</h2>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Name of Data Requester <span class="required">*</span></label>
+              <input type="text" id="requesterName" required>
+            </div>
+            <div class="form-group">
+              <label>Email Address <span class="required">*</span></label>
+              <input type="email" id="requesterEmail" required>
+              <div class="helper-text">Must be a @dlsl.edu.ph email address</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Office and Position / Course and Year Level <span class="required">*</span></label>
+              <input type="text" id="requesterOffice" required placeholder="e.g., TOIC - Director / BSCS 4th Year">
+            </div>
+            <div class="form-group">
+              <label>Date of Request <span class="required">*</span></label>
+              <input type="date" id="dateOfRequest" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Data Source Category -->
+        <div class="section">
+          <h2 class="section-title"><span class="icon">🏛️</span>Data Source Category</h2>
+          <p class="helper-text" style="margin-bottom: 15px;">Select where the data you are requesting comes from.</p>
+          <div class="form-group">
+            <label>Data Source <span class="required">*</span></label>
+            <select id="dataSourceCategory" required onchange="onDataSourceChange()">
+              <option value="">-- Select Data Source --</option>
+              <option value="SMS - Basic Education to Senior High">School Management System — Basic Education to Senior High</option>
+              <option value="SMS - College, College of Law, Graduate Studies">School Management System — College / College of Law / Graduate Studies</option>
+              <option value="Employment Records">Employment Records (HRD)</option>
+              <option value="Financial Records">Financial Records (Finance Office)</option>
+              <option value="Institutional Admissions & Testing office">Institutional Admissions & Testing Office</option>
+            </select>
+          </div>
+          <div id="dataOwnerInfo" class="data-owner-info">
+            <h4>🏛️ Data Owner for this request:</h4>
+            <p><strong id="dataOwnerTitle"></strong></p>
+            <p id="dataOwnerDesc"></p>
+          </div>
+        </div>
+
+        <!-- Section 3: Personal Data Being Requested -->
+        <div class="section">
+          <h2 class="section-title"><span class="icon">📄</span>Personal Data Being Requested</h2>
+          <div id="dataItemsContainer">
+            <div class="data-item" data-index="0">
+              <div class="form-group">
+                <label>Personal Data Description <span class="required">*</span></label>
+                <input type="text" class="dataDescription" required placeholder="e.g., Student grades for SY 2024-2025">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>File Type <span class="required">*</span></label>
+                  <input type="text" class="dataFileType" value="Electronic" readonly style="background:#f0f0f0; cursor:default;">
+                </div>
+                <div class="form-group">
+                  <label>Purpose <span class="required">*</span></label>
+                  <input type="text" class="dataPurpose" required placeholder="e.g., Academic research">
+                </div>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="add-btn" onclick="addDataItem()"><span>➕</span> Add More Data Items</button>
+        </div>
+
+        <!-- Section 4: Internal Data Recipients -->
+        <div class="section">
+          <h2 class="section-title"><span class="icon">👥</span>Internal Data Recipients</h2>
+          <p class="helper-text" style="margin-bottom: 15px;">All LPs or students who will have access to the personal data being requested</p>
+          <div id="internalRecipientsContainer">
+            <div class="recipient-item" data-index="0">
+              <div class="form-group"><label>Name <span class="required">*</span></label><input type="text" class="recipientName" required></div>
+              <div class="form-row">
+                <div class="form-group"><label>Office and Position / Course and Year Level <span class="required">*</span></label><input type="text" class="recipientPosition" required></div>
+                <div class="form-group"><label>Email Address <span class="required">*</span></label><input type="email" class="recipientEmail" required><div class="helper-text">Must be @dlsl.edu.ph</div></div>
+              </div>
+              <div class="form-group"><label>Justification <span class="required">*</span></label><textarea class="recipientJustification" required placeholder="Why does this person need access to the data?"></textarea></div>
+            </div>
+          </div>
+          <button type="button" class="add-btn" onclick="addInternalRecipient()"><span>➕</span> Add More Recipients</button>
+        </div>
+
+        <!-- Section 5: External Data Recipients -->
+        <div class="section">
+          <h2 class="section-title"><span class="icon">🌐</span>External Data Recipients (Optional)</h2>
+          <div id="externalRecipientsContainer">
+            <div class="recipient-item" data-index="0">
+              <button type="button" class="remove-btn" onclick="removeExternalRecipient(0)">×</button>
+              <div class="form-group"><label>Name</label><input type="text" class="externalName"></div>
+              <div class="form-group"><label>Purpose</label><textarea class="externalPurpose" placeholder="Purpose of data sharing"></textarea></div>
+              <div class="form-group">
+                <label>MOA/NDA/DSA/Consent Form</label>
+                <select class="externalAgreement"><option value="No">No</option><option value="Yes">Yes</option></select>
+                <input type="text" class="externalAgreementLink" placeholder="Link to agreement (if available)" style="margin-top: 10px;">
+              </div>
+            </div>
+          </div>
+          <button type="button" class="add-btn" onclick="addExternalRecipient()"><span>➕</span> Add External Recipient</button>
+        </div>
+
+        <!-- Section 6: Access Period & Security -->
+        <div class="section">
+          <h2 class="section-title"><span class="icon">📅</span>Access Period & Security Measures</h2>
+          <div class="form-row">
+            <div class="form-group"><label>Start Date of Access <span class="required">*</span></label><input type="date" id="accessStartDate" required></div>
+            <div class="form-group"><label>End Date of Access <span class="required">*</span></label><input type="date" id="accessEndDate" required></div>
+          </div>
+          <div class="form-group">
+            <label>Security Measures to be Implemented <span class="required">*</span></label>
+            <textarea id="securityMeasures" required rows="4" placeholder="Example: If in hard copy, documents shall be stored in locked cabinets and shredded upon disposal..."></textarea>
+          </div>
+        </div>
+
+        <!-- Section 7: Endorsement -->
+        <div class="section">
+          <h2 class="section-title"><span class="icon">✍️</span>Endorsement by Approving Authority</h2>
+          <p class="helper-text" style="margin-bottom: 15px;">Immediate Head (for LPs) or Org Adviser/Thesis Adviser/Program Chair (for Students)</p>
+          <div class="form-row">
+            <div class="form-group"><label>Approver Name <span class="required">*</span></label><input type="text" id="approverName" required></div>
+            <div class="form-group"><label>Approver Email <span class="required">*</span></label><input type="email" id="approverEmail" required><div class="helper-text">Must be @dlsl.edu.ph</div></div>
+          </div>
+          <div class="form-group"><label>Approver Position <span class="required">*</span></label><input type="text" id="approverPosition" required placeholder="e.g., Program Chair, Immediate Supervisor"></div>
+        </div>
+
+        <!-- Section 8: Supporting Documents -->
+        <div class="section">
+          <h2 class="section-title"><span class="icon">📎</span>Supporting Documents</h2>
+          <div class="form-group"><label>Supporting Documents Link (Optional)</label><input type="text" id="supportingDocs" placeholder="Google Drive link to Consent Forms, NDA, etc."><div class="helper-text">Provide a Google Drive link</div></div>
+        </div>
+
+        <!-- Conditions of Access -->
+        <div class="section" style="border-left-color: #2E7D32; background: #E8F5E9;">
+          <h2 class="section-title" style="color: #1B5E20; border-bottom-color: #2E7D32;"><span class="icon">⚠️</span>Conditions of Access</h2>
+          <p style="font-size:14px; color:#555; line-height:1.8; margin-bottom:8px;">By submitting this request, the Data Recipient(s) acknowledge and agree to the following conditions:</p>
+          <ul style="font-size:14px; color:#444; line-height:1.9; margin-left:20px; list-style-type:disc;">
+            <li>Only the Data Recipients named in this form are authorized to access and use the personal data.</li>
+            <li>Access to the personal data is limited to the duration specified in this form. Any extension shall require the prior approval of the Data Privacy Office.</li>
+            <li>The personal data shall be used solely for the declared and authorized purpose(s).</li>
+            <li>Data Recipients are expected to implement appropriate security measures to preserve the integrity, confidentiality, and availability of the personal data.</li>
+            <li>The Data Recipient(s) shall not download, reproduce, or otherwise copy the file containing the personal data, whether in printed or electronic form, without the prior approval of the Data Privacy Office.</li>
+            <li>Upon the expiration of the approved access period, the Data Recipient(s) shall cease further processing of the personal data and securely dispose of such data in their custody. Upon request, a written certification of data deletion or disposal shall be submitted to the Data Owner and/or Processor, with a copy furnished to the Data Privacy Office.</li>
+          </ul>
+        </div>
+
+        <!-- Consent -->
+        <div class="section">
+          <div class="checkbox-group">
+            <input type="checkbox" id="consent" required>
+            <label for="consent"><strong>I confirm that I have read and understood the Conditions of Access above, and I freely and voluntarily give consent to the collection and processing of my personal information as stated in the Data Privacy Notice. <span class="required">*</span></strong></label>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn">🚀 Submit Single Data Access Request</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="copyright-footer">
+    <p class="aom">DLSL A²OM</p>
+    <p class="aom-sub">DLSL Automated Operations Module</p>
+    <p>© 2025 De La Salle Lipa - Data Access Request Form</p>
+    <p class="dept">Technology Operations and Innovations Center (TOIC)</p>
+  </div>
+
+  <!-- SUCCESS MODAL -->
+  <div class="modal-overlay" id="successModal">
+    <div class="modal">
+      <div class="modal-header-success">
+        <div class="modal-check">✅</div>
+        <h2>Request Submitted Successfully!</h2>
+        <p>Your data access request is now being processed.</p>
+      </div>
+      <div class="modal-body-success">
+        <div class="request-id-box">
+          <div class="label">Your Request ID</div>
+          <div class="id-value" id="modalRequestId">—</div>
+          <span class="request-type-pill pill-single" id="modalTypePill">📄 Single Request</span>
+          <br>
+          <button class="copy-btn" onclick="copyRequestId()">📋 Copy ID</button>
+        </div>
+        <div class="modal-reminder">
+          <strong>⚠️ Please save this Request ID</strong> — you will need it to track the status of your request. A confirmation email has also been sent to your inbox.
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn btn-track" onclick="trackRequest()">📊 Track Status</button>
+          <button class="modal-btn btn-new" onclick="newRequest()">📄 New Request</button>
+          <button class="modal-btn btn-home" onclick="goBack()">🏠 Home</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let dataItemCount = 1, internalRecipientCount = 1, externalRecipientCount = 1;
+    let lastRequestId = '';
+    let webAppUrl = '';
+
+    google.script.run.withSuccessHandler(function(url) { webAppUrl = url; }).getWebAppUrl();
+
+    const DATA_OWNER_DISPLAY = {
+      'SMS - Basic Education to Senior High': { title: 'IS Registrar', desc: 'School Management System (Basic Education to Senior High School)' },
+      'SMS - College, College of Law, Graduate Studies': { title: 'College Registrar', desc: 'School Management System (College / College of Law / Graduate Studies)' },
+      'Employment Records': { title: 'HRD Head', desc: 'Human Resource Development — Employment Records' },
+      'Financial Records': { title: 'Finance Head', desc: 'Finance Office — Financial Records' },
+      'Institutional Admissions & Testing office': { title: 'IATO Head', desc: 'Institutional Admissions & Testing Office' }
+    };
+
+    document.getElementById('dateOfRequest').valueAsDate = new Date();
+
+    function onDataSourceChange() {
+      var cat = document.getElementById('dataSourceCategory').value;
+      var infoBox = document.getElementById('dataOwnerInfo');
+      if (cat && DATA_OWNER_DISPLAY[cat]) {
+        document.getElementById('dataOwnerTitle').textContent = DATA_OWNER_DISPLAY[cat].title;
+        document.getElementById('dataOwnerDesc').textContent  = DATA_OWNER_DISPLAY[cat].desc;
+        infoBox.classList.add('visible');
+      } else { infoBox.classList.remove('visible'); }
+    }
+
+    function goBack() {
+      if (webAppUrl) window.top.location.href = webAppUrl;
+      else google.script.run.withSuccessHandler(function(url){ window.top.location.href = url; }).getWebAppUrl();
+    }
+
+    function addDataItem() {
+      var c = document.getElementById('dataItemsContainer'), el = document.createElement('div');
+      el.className = 'data-item'; el.setAttribute('data-index', dataItemCount);
+      el.innerHTML = '<button type="button" class="remove-btn" onclick="removeDataItem('+dataItemCount+')">×</button><div class="form-group"><label>Personal Data Description <span class="required">*</span></label><input type="text" class="dataDescription" required></div><div class="form-row"><div class="form-group"><label>File Type <span class="required">*</span></label><input type="text" class="dataFileType" value="Electronic" readonly style="background:#f0f0f0; cursor:default;"></div><div class="form-group"><label>Purpose <span class="required">*</span></label><input type="text" class="dataPurpose" required></div></div>';
+      c.appendChild(el); dataItemCount++;
+    }
+    function removeDataItem(i) { var el = document.querySelector('.data-item[data-index="'+i+'"]'); if (el) el.remove(); }
+
+    function addInternalRecipient() {
+      var c = document.getElementById('internalRecipientsContainer'), el = document.createElement('div');
+      el.className = 'recipient-item'; el.setAttribute('data-index', internalRecipientCount);
+      el.innerHTML = '<button type="button" class="remove-btn" onclick="removeInternalRecipient('+internalRecipientCount+')">×</button><div class="form-group"><label>Name <span class="required">*</span></label><input type="text" class="recipientName" required></div><div class="form-row"><div class="form-group"><label>Office/Position <span class="required">*</span></label><input type="text" class="recipientPosition" required></div><div class="form-group"><label>Email <span class="required">*</span></label><input type="email" class="recipientEmail" required><div class="helper-text">Must be @dlsl.edu.ph</div></div></div><div class="form-group"><label>Justification <span class="required">*</span></label><textarea class="recipientJustification" required></textarea></div>';
+      c.appendChild(el); internalRecipientCount++;
+    }
+    function removeInternalRecipient(i) { var el = document.querySelector('#internalRecipientsContainer .recipient-item[data-index="'+i+'"]'); if (el && document.querySelectorAll('#internalRecipientsContainer .recipient-item').length > 1) el.remove(); }
+
+    function addExternalRecipient() {
+      var c = document.getElementById('externalRecipientsContainer'), el = document.createElement('div');
+      el.className = 'recipient-item'; el.setAttribute('data-index', externalRecipientCount);
+      el.innerHTML = '<button type="button" class="remove-btn" onclick="removeExternalRecipient('+externalRecipientCount+')">×</button><div class="form-group"><label>Name</label><input type="text" class="externalName"></div><div class="form-group"><label>Purpose</label><textarea class="externalPurpose"></textarea></div><div class="form-group"><label>MOA/NDA/DSA/Consent Form</label><select class="externalAgreement"><option value="No">No</option><option value="Yes">Yes</option></select><input type="text" class="externalAgreementLink" placeholder="Link to agreement" style="margin-top:10px;"></div>';
+      c.appendChild(el); externalRecipientCount++;
+    }
+    function removeExternalRecipient(i) { var el = document.querySelector('#externalRecipientsContainer .recipient-item[data-index="'+i+'"]'); if (el) el.remove(); }
+
+    function showAlert(msg) {
+      var a = document.getElementById('alertError');
+      a.innerHTML = msg; a.style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showSuccessModal(requestId, requestType) {
+      lastRequestId = requestId;
+      document.getElementById('modalRequestId').textContent = requestId;
+      var pill = document.getElementById('modalTypePill');
+      if (requestType && requestType.toLowerCase().includes('bulk')) {
+        pill.className = 'request-type-pill pill-bulk'; pill.textContent = '📦 Bulk Request';
+      } else {
+        pill.className = 'request-type-pill pill-single'; pill.textContent = '📄 Single Request';
+      }
+      document.getElementById('successModal').classList.add('open');
+    }
+
+    function copyRequestId() {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(lastRequestId).then(function() { alert('Request ID copied: ' + lastRequestId); });
+      } else {
+        var t = document.createElement('textarea'); t.value = lastRequestId; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
+        alert('Request ID copied: ' + lastRequestId);
+      }
+    }
+
+    function trackRequest() {
+      if (webAppUrl) window.top.location.href = webAppUrl + '?page=status&id=' + encodeURIComponent(lastRequestId);
+    }
+    function newRequest() {
+      document.getElementById('successModal').classList.remove('open');
+      document.getElementById('darfForm').reset();
+      document.getElementById('dateOfRequest').valueAsDate = new Date();
+      document.getElementById('dataOwnerInfo').classList.remove('visible');
+      document.querySelector('.submit-btn').disabled = false;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    document.getElementById('darfForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var reqEmail = document.getElementById('requesterEmail').value;
+      var appEmail = document.getElementById('approverEmail').value;
+      var dsCat    = document.getElementById('dataSourceCategory').value;
+
+      if (!reqEmail.endsWith('@dlsl.edu.ph')) { showAlert('Requester email must be a @dlsl.edu.ph address'); return; }
+      if (!appEmail.endsWith('@dlsl.edu.ph')) { showAlert('Approver email must be a @dlsl.edu.ph address'); return; }
+      if (!dsCat) { showAlert('Please select a Data Source Category'); return; }
+
+      var recipEmails = document.querySelectorAll('.recipientEmail');
+      for (var i = 0; i < recipEmails.length; i++) {
+        if (recipEmails[i].value && !recipEmails[i].value.endsWith('@dlsl.edu.ph')) { showAlert('All internal recipient emails must be @dlsl.edu.ph addresses'); return; }
+      }
+
+      var sd = document.getElementById('accessStartDate').value, ed = document.getElementById('accessEndDate').value;
+      if (sd && ed && new Date(sd) > new Date(ed)) { showAlert('Access End Date must be after Start Date'); return; }
+
+      var dataItems = [];
+      document.querySelectorAll('.data-item').forEach(function(item) {
+        var d = item.querySelector('.dataDescription').value, f = item.querySelector('.dataFileType').value, p = item.querySelector('.dataPurpose').value;
+        if (d && f && p) dataItems.push({ description: d, fileType: f, purpose: p });
+      });
+      if (dataItems.length === 0) { showAlert('Please add at least one data item'); return; }
+
+      var intRecips = [];
+      document.querySelectorAll('#internalRecipientsContainer .recipient-item').forEach(function(item) {
+        var n = item.querySelector('.recipientName').value, po = item.querySelector('.recipientPosition').value, em = item.querySelector('.recipientEmail').value, j = item.querySelector('.recipientJustification').value;
+        if (n && po && em && j) intRecips.push({ name: n, position: po, email: em, justification: j });
+      });
+
+      var extRecips = [];
+      document.querySelectorAll('#externalRecipientsContainer .recipient-item').forEach(function(item) {
+        var n = item.querySelector('.externalName').value, p = item.querySelector('.externalPurpose').value, a = item.querySelector('.externalAgreement').value, l = item.querySelector('.externalAgreementLink').value;
+        if (n && p) extRecips.push({ name: n, purpose: p, hasAgreement: a + (l ? ' - ' + l : '') });
+      });
+
+      var formData = {
+        requesterName: document.getElementById('requesterName').value,
+        requesterEmail: reqEmail,
+        requesterOffice: document.getElementById('requesterOffice').value,
+        dateOfRequest: document.getElementById('dateOfRequest').value,
+        dataSourceCategory: dsCat,
+        dataItems: dataItems,
+        internalRecipients: intRecips,
+        externalRecipients: extRecips,
+        accessStartDate: sd,
+        accessEndDate: ed,
+        securityMeasures: document.getElementById('securityMeasures').value,
+        approverName: document.getElementById('approverName').value,
+        approverEmail: appEmail,
+        approverPosition: document.getElementById('approverPosition').value,
+        supportingDocs: document.getElementById('supportingDocs').value,
+        requestType: 'single'
+      };
+
+      document.getElementById('loading').style.display = 'block';
+      document.querySelector('.submit-btn').disabled = true;
+      document.getElementById('alertError').style.display = 'none';
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          document.getElementById('loading').style.display = 'none';
+          if (res.success) {
+            showSuccessModal(res.requestId, res.requestType);
+          } else {
+            showAlert('❌ ' + res.message);
+            document.querySelector('.submit-btn').disabled = false;
+          }
+        })
+        .withFailureHandler(function(err) {
+          document.getElementById('loading').style.display = 'none';
+          showAlert('❌ Error: ' + err.message);
+          document.querySelector('.submit-btn').disabled = false;
+        })
+        .submitDARFRequest(formData);
+    });
+  </script>
+</body>
+</html>

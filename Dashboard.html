@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DARF Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* ===== TOPBAR ===== */
+    .topbar {
+      background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
+      color: white; padding: 16px 30px;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100;
+    }
+    .topbar h1 { font-size: 20px; display: flex; align-items: center; gap: 8px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+    .role-badge { background: rgba(255,255,255,0.2); padding: 4px 14px; border-radius: 12px; font-weight: 600; font-size: 12px; }
+
+    /* ===== ACTION TOOLBAR ===== */
+    .action-toolbar {
+      display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+      padding: 18px 30px 0; max-width: 1200px; margin: 0 auto; width: 100%;
+    }
+    .action-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 20px; border: none; border-radius: 25px;
+      font-size: 13px; font-weight: 700; color: white; cursor: pointer;
+      transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+    .action-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,0.2); }
+    .btn-refresh { background: #4CAF50; }
+    .btn-auto    { background: #9C27B0; }
+    .btn-auto.on { background: #7B1FA2; animation: autoPulse 2s ease-in-out infinite; }
+    @keyframes autoPulse { 0%,100% { box-shadow: 0 2px 8px rgba(156,39,176,0.3); } 50% { box-shadow: 0 2px 16px rgba(156,39,176,0.6); } }
+    .btn-csv     { background: #2196F3; }
+    .btn-pdf     { background: #4CAF50; }
+    .btn-email   { background: #f44336; }
+
+    .main { padding: 18px 30px 24px; max-width: 1200px; margin: 0 auto; width: 100%; flex: 1; }
+
+    /* ===== STATS ===== */
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card {
+      background: white; border-radius: 12px; padding: 22px 18px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06); text-align: center;
+      border-top: 4px solid #1B5E20; transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+    .stat-card .number { font-size: 36px; font-weight: 800; color: #1B5E20; line-height: 1.1; }
+    .stat-card .label { font-size: 12px; color: #888; margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+    .stat-card.action   { border-top-color: #1976D2; } .stat-card.action   .number { color: #1976D2; }
+    .stat-card.pending  { border-top-color: #FF9800; } .stat-card.pending  .number { color: #FF9800; }
+    .stat-card.waiting  { border-top-color: #FFB300; } .stat-card.waiting  .number { color: #F57F17; }
+    .stat-card.complete { border-top-color: #4CAF50; } .stat-card.complete .number { color: #4CAF50; }
+    .stat-card.rejected { border-top-color: #f44336; } .stat-card.rejected .number { color: #f44336; }
+
+    /* ===== DATE FILTER (under stats) ===== */
+    .date-filter-bar {
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+      background: white; border-radius: 10px; padding: 14px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px;
+    }
+    .date-filter-bar label { font-size: 13px; font-weight: 700; color: #333; display: flex; align-items: center; gap: 6px; }
+    .date-filter-bar input[type="date"] {
+      padding: 8px 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 13px;
+      font-family: inherit; outline: none; transition: border-color 0.2s;
+    }
+    .date-filter-bar input[type="date"]:focus { border-color: #1B5E20; }
+    .date-arrow { color: #999; font-size: 16px; font-weight: 600; }
+    .date-btn {
+      padding: 8px 20px; border: none; border-radius: 8px; font-size: 13px;
+      font-weight: 700; cursor: pointer; transition: all 0.2s;
+    }
+    .date-btn-apply { background: #1B5E20; color: white; }
+    .date-btn-apply:hover { background: #2E7D32; }
+    .date-btn-clear { background: #e0e0e0; color: #555; }
+    .date-btn-clear:hover { background: #bdbdbd; }
+
+    /* ===== STATUS FILTER TOOLBAR ===== */
+    .toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+    .filter-btn { padding: 7px 14px; border: 2px solid #ddd; border-radius: 20px; background: white; cursor: pointer; font-size: 12px; font-weight: 600; color: #555; transition: all 0.2s; }
+    .filter-btn:hover { border-color: #1B5E20; color: #1B5E20; }
+    .filter-btn.active { background: #1B5E20; color: white; border-color: #1B5E20; }
+    .search-wrap { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .search-input { padding: 7px 14px; border: 2px solid #ddd; border-radius: 20px; font-size: 12px; min-width: 220px; outline: none; }
+    .search-input:focus { border-color: #1B5E20; }
+    .record-count { background: #E8F5E9; color: #1B5E20; font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 16px; white-space: nowrap; }
+
+    /* ===== TABLE ===== */
+    .table-wrap { background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { background: #f8f9fa; padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e8e8e8; }
+    tbody td { padding: 14px 16px; font-size: 13px; color: #333; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+    tbody tr:hover { background: #f8fdf8; }
+    tbody tr.row-action { background: #FFFDE7; }
+    tbody tr.row-waiting { background: #FFF8E1; }
+    .req-id   { font-weight: 700; color: #1B5E20; font-size: 12px; }
+    .req-name { font-weight: 600; font-size: 13px; }
+    .req-email { font-size: 11px; color: #999; }
+
+    .status-pill { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .pill-pending    { background: #FFF3E0; color: #E65100; }
+    .pill-waiting    { background: #FFF8E1; color: #F57F17; }
+    .pill-processing { background: #E3F2FD; color: #1565C0; }
+    .pill-complete   { background: #E8F5E9; color: #2E7D32; }
+    .pill-rejected   { background: #FFEBEE; color: #C62828; }
+
+    .btn { padding: 6px 12px; border: none; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 4px; }
+    .btn-view  { background: #E3F2FD; color: #1565C0; } .btn-view:hover  { background: #BBDEFB; }
+    .btn-grant { background: #FF9800; color: white; } .btn-grant:hover { background: #F57C00; }
+    .btn-done  { background: #E8F5E9; color: #2E7D32; cursor: default; }
+
+    /* ===== MODALS ===== */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 500; justify-content: center; align-items: flex-start; padding: 40px 20px; overflow-y: auto; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: white; border-radius: 14px; width: 100%; max-width: 720px; box-shadow: 0 10px 40px rgba(0,0,0,0.25); overflow: hidden; animation: slideUp 0.25s ease; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .modal-header { background: linear-gradient(135deg, #1B5E20, #2E7D32); color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h2 { font-size: 16px; }
+    .modal-close { background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .modal-close:hover { background: rgba(255,255,255,0.35); }
+    .modal-body { padding: 24px; max-height: 72vh; overflow-y: auto; }
+
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .info-box { background: #f8f9fa; border-radius: 6px; padding: 10px 14px; }
+    .info-box.full { grid-column: 1 / -1; }
+    .info-box h4 { font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 2px; }
+    .info-box p { font-size: 13px; color: #333; white-space: pre-line; }
+
+    .chain-step { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
+    .chain-icon { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; margin-top: 2px; }
+    .ci-done    { background: #E8F5E9; color: #2E7D32; }
+    .ci-pending { background: #FFF3E0; color: #E65100; }
+    .ci-waiting { background: #FFF8E1; color: #F57F17; }
+    .ci-rejected{ background: #FFEBEE; color: #C62828; }
+    .rec-box { background: #FFF8E1; border-left: 3px solid #FFB300; padding: 8px 12px; border-radius: 0 4px 4px 0; margin-top: 4px; font-size: 12px; font-style: italic; color: #555; }
+
+    .grant-section { background: #FFF8E1; border: 2px solid #FFB300; border-radius: 8px; padding: 18px; margin-top: 16px; }
+    .grant-section h3 { color: #F57F17; margin-bottom: 8px; font-size: 15px; }
+    .grant-section label { display: block; font-size: 12px; font-weight: 600; color: #555; margin: 10px 0 4px; }
+    .grant-section select, .grant-section textarea { width: 100%; padding: 9px 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit; }
+    .grant-section select:focus, .grant-section textarea:focus { outline: none; border-color: #1B5E20; }
+    .grant-section textarea { resize: vertical; min-height: 70px; }
+    .grant-submit { margin-top: 14px; padding: 10px 24px; background: #1B5E20; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; width: 100%; }
+    .grant-submit:hover { background: #2E7D32; }
+    .grant-submit:disabled { background: #ccc; cursor: not-allowed; }
+
+    /* ===== EMAIL MODAL ===== */
+    .email-modal { background: white; border-radius: 14px; width: 100%; max-width: 520px; box-shadow: 0 10px 40px rgba(0,0,0,0.25); overflow: hidden; animation: slideUp 0.25s ease; }
+    .email-modal .modal-header { background: linear-gradient(135deg, #d32f2f, #f44336); }
+    .email-modal .modal-body { padding: 24px; }
+    .email-field { margin-bottom: 16px; }
+    .email-field label { display: block; font-size: 13px; font-weight: 700; color: #333; margin-bottom: 6px; }
+    .email-field input, .email-field textarea {
+      width: 100%; padding: 10px 14px; border: 2px solid #ddd; border-radius: 8px;
+      font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.2s;
+    }
+    .email-field input:focus, .email-field textarea:focus { border-color: #1B5E20; }
+    .email-field textarea { resize: vertical; min-height: 100px; }
+    .email-actions { display: flex; gap: 10px; margin-top: 20px; }
+    .email-send-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 12px 24px; background: #f44336; color: white; border: none;
+      border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+    }
+    .email-send-btn:hover { background: #d32f2f; }
+    .email-send-btn:disabled { background: #ccc; cursor: not-allowed; }
+    .email-cancel-btn {
+      padding: 12px 24px; background: #757575; color: white; border: none;
+      border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+    }
+    .email-cancel-btn:hover { background: #616161; }
+
+    /* ===== TOAST ===== */
+    .toast { position: fixed; bottom: 30px; right: 30px; padding: 14px 24px; border-radius: 8px; color: white; font-weight: 600; font-size: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 1000; transform: translateY(100px); opacity: 0; transition: all 0.3s ease; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast-success { background: #4CAF50; }
+    .toast-error   { background: #f44336; }
+
+    .loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.85); z-index: 200; justify-content: center; align-items: center; flex-direction: column; }
+    .loading-overlay.visible { display: flex; }
+    .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #1B5E20; border-radius: 50%; width: 44px; height: 44px; animation: spin 1s linear infinite; margin-bottom: 14px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    .empty-state { text-align: center; padding: 50px 20px; color: #999; }
+    .empty-state h3 { margin-bottom: 6px; color: #666; }
+
+    /* ===== FOOTER ===== */
+    .copyright-footer {
+      text-align: center; padding: 24px 20px; background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
+      color: rgba(255,255,255,0.55); font-size: 12px; line-height: 1.6; margin-top: auto;
+    }
+    .copyright-footer p { margin: 0; }
+    .copyright-footer .aom { font-size: 16px; font-weight: 800; color: rgba(255,255,255,0.75); letter-spacing: 1.5px; margin-bottom: 2px; }
+    .copyright-footer .aom-sub { font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 0.5px; margin-bottom: 10px; }
+    .copyright-footer .dept { font-weight: 600; color: rgba(255,255,255,0.45); font-size: 11px; letter-spacing: 0.5px; margin-top: 2px; }
+
+    @media (max-width: 768px) {
+      .main { padding: 12px 16px 16px; }
+      .action-toolbar { padding-left: 16px; padding-right: 16px; }
+      .topbar { padding: 12px 16px; } .topbar h1 { font-size: 16px; }
+      .toolbar { flex-direction: column; }
+      .search-wrap { margin-left: 0; width: 100%; }
+      .search-input { min-width: 100%; }
+      .info-grid { grid-template-columns: 1fr; }
+      thead th, tbody td { padding: 10px 8px; font-size: 12px; }
+      .action-btn { padding: 8px 14px; font-size: 12px; }
+      .stats-row { grid-template-columns: repeat(3, 1fr); }
+      .email-actions { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <h1>📊 DARF Dashboard</h1>
+    <div class="topbar-right">
+      <span class="role-badge" id="roleBadge">Loading...</span>
+      <span id="userEmailDisplay"></span>
+    </div>
+  </div>
+
+  <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div><p>Loading requests...</p></div>
+
+  <!-- Action Toolbar -->
+  <div class="action-toolbar">
+    <button class="action-btn btn-refresh" onclick="loadDashboard()">🔄 Refresh</button>
+    <button class="action-btn btn-auto" id="autoRefreshBtn" onclick="toggleAutoRefresh()">⚙️ Auto</button>
+    <button class="action-btn btn-csv" onclick="exportCSV()">📊 CSV</button>
+    <button class="action-btn btn-pdf" onclick="exportPDF()">📄 PDF</button>
+    <button class="action-btn btn-email" onclick="openEmailModal()">📧 Email</button>
+  </div>
+
+  <div class="main">
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card"><div class="number" id="statTotal">—</div><div class="label">Total Requests</div></div>
+      <div class="stat-card action"><div class="number" id="statAction">—</div><div class="label">Needs My Action</div></div>
+      <div class="stat-card pending"><div class="number" id="statProgress">—</div><div class="label">In Progress</div></div>
+      <div class="stat-card waiting"><div class="number" id="statWaiting">—</div><div class="label">Awaiting Requester</div></div>
+      <div class="stat-card complete"><div class="number" id="statComplete">—</div><div class="label">Completed</div></div>
+      <div class="stat-card rejected"><div class="number" id="statRejected">—</div><div class="label">Disapproved</div></div>
+    </div>
+
+    <!-- Date Filter (under stats) -->
+    <div class="date-filter-bar">
+      <label>📅 Filter by Date:</label>
+      <input type="date" id="dateFrom">
+      <span class="date-arrow">→</span>
+      <input type="date" id="dateTo">
+      <button class="date-btn date-btn-apply" onclick="applyFilters()">Apply</button>
+      <button class="date-btn date-btn-clear" onclick="clearDateFilter()">Clear</button>
+    </div>
+
+    <!-- Status Filter Toolbar -->
+    <div class="toolbar">
+      <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+      <button class="filter-btn" onclick="setFilter('action', this)">⚡ Needs My Action</button>
+      <button class="filter-btn" onclick="setFilter('pending', this)">🕐 In Progress</button>
+      <button class="filter-btn" onclick="setFilter('waiting', this)">⏳ Awaiting Requester</button>
+      <button class="filter-btn" onclick="setFilter('complete', this)">✅ Completed</button>
+      <button class="filter-btn" onclick="setFilter('rejected', this)">❌ Disapproved</button>
+      <div class="search-wrap">
+        <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search ID, name, source..." oninput="applyFilters()">
+        <span class="record-count" id="recordCount">0 records</span>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Request ID</th><th>Requester</th><th>Date</th><th>Status</th>
+          <th style="text-align:center">Details</th><th style="text-align:center">Action</th>
+        </tr></thead>
+        <tbody id="tableBody"><tr><td colspan="6"><div class="empty-state"><h3>Loading...</h3></div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="copyright-footer">
+    <p class="aom">DLSL A²OM</p>
+    <p class="aom-sub">DLSL Automated Operations Module</p>
+    <p>© 2025 De La Salle Lipa - Data Access Request Form</p>
+    <p class="dept">Technology Operations and Innovations Center (TOIC)</p>
+  </div>
+
+  <!-- Detail / Grant Modal -->
+  <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalTitle">Request Details</h2>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Email Report Modal -->
+  <div class="modal-overlay" id="emailModalOverlay" onclick="if(event.target===this)closeEmailModal()">
+    <div class="email-modal">
+      <div class="modal-header">
+        <h2>📧 Email Report</h2>
+        <button class="modal-close" onclick="closeEmailModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="email-field">
+          <label>Recipient Email</label>
+          <input type="email" id="emailTo" placeholder="e.g., name@dlsl.edu.ph">
+        </div>
+        <div class="email-field">
+          <label>Subject</label>
+          <input type="text" id="emailSubject" value="DARF Dashboard Report">
+        </div>
+        <div class="email-field">
+          <label>Message (optional)</label>
+          <textarea id="emailMessage" placeholder="Add a message..."></textarea>
+        </div>
+        <div class="email-actions">
+          <button class="email-send-btn" id="emailSendBtn" onclick="sendEmailReport()">📧 Send Report</button>
+          <button class="email-cancel-btn" onclick="closeEmailModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    var allRequests = [], currentFilter = 'all', userRole = '';
+    var autoRefreshTimer = null, autoRefreshOn = false;
+
+    document.addEventListener('DOMContentLoaded', loadDashboard);
+
+    /* ===== AUTO REFRESH ===== */
+    function toggleAutoRefresh() {
+      autoRefreshOn = !autoRefreshOn;
+      var btn = document.getElementById('autoRefreshBtn');
+      if (autoRefreshOn) {
+        btn.classList.add('on'); btn.innerHTML = '⚙️ Auto (ON)';
+        autoRefreshTimer = setInterval(loadDashboard, 30000);
+        showToast('Auto-refresh ON (every 30s)', 'success');
+      } else {
+        btn.classList.remove('on'); btn.innerHTML = '⚙️ Auto';
+        clearInterval(autoRefreshTimer); autoRefreshTimer = null;
+        showToast('Auto-refresh OFF', 'success');
+      }
+    }
+
+    /* ===== EXPORT CSV ===== */
+    function exportCSV() {
+      var filtered = getFilteredList();
+      if (!filtered.length) { showToast('No data to export', 'error'); return; }
+      var headers = ['Request ID','Requester','Email','Date','Status','Data Source'];
+      var rows = filtered.map(function(r) {
+        return [r.requestId, '"'+(r.requesterName||'').replace(/"/g,'""')+'"', r.requesterEmail, r.dateOfRequest||'', '"'+(r.status||'').replace(/"/g,'""')+'"', '"'+(r.dataSourceCategory||'').replace(/"/g,'""')+'"'].join(',');
+      });
+      var csv = headers.join(',') + '\n' + rows.join('\n');
+      var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      var link = document.createElement('a');
+      link.href = URL.createObjectURL(blob); link.download = 'DARF_Export_' + new Date().toISOString().slice(0,10) + '.csv';
+      link.click();
+      showToast('CSV exported (' + filtered.length + ' records)', 'success');
+    }
+
+    /* ===== EXPORT PDF ===== */
+    function exportPDF() {
+      var filtered = getFilteredList();
+      if (!filtered.length) { showToast('No data to export', 'error'); return; }
+      var w = window.open('','','width=900,height=700');
+      var html = '<html><head><title>DARF Report</title><style>body{font-family:Segoe UI,sans-serif;padding:30px;}h1{color:#1B5E20;font-size:20px;margin-bottom:4px;}p.sub{color:#666;font-size:12px;margin-bottom:20px;}table{width:100%;border-collapse:collapse;font-size:12px;}th{background:#1B5E20;color:white;padding:8px 10px;text-align:left;}td{padding:8px 10px;border-bottom:1px solid #e0e0e0;}tr:nth-child(even){background:#f9f9f9;}.footer{margin-top:30px;text-align:center;font-size:10px;color:#999;line-height:1.8;}.footer .aom{font-size:13px;font-weight:700;color:#666;letter-spacing:1px;}</style></head><body>';
+      html += '<h1>📊 DARF Dashboard Report</h1>';
+      html += '<p class="sub">Generated: ' + new Date().toLocaleString() + ' · ' + filtered.length + ' records</p>';
+      html += '<table><thead><tr><th>Request ID</th><th>Requester</th><th>Date</th><th>Status</th><th>Data Source</th></tr></thead><tbody>';
+      filtered.forEach(function(r) {
+        html += '<tr><td>'+r.requestId+'</td><td>'+r.requesterName+'<br><small style="color:#999;">'+r.requesterEmail+'</small></td><td>'+(r.dateOfRequest||'')+'</td><td>'+shortStatus(r.status)+'</td><td>'+(r.dataSourceCategory||'—')+'</td></tr>';
+      });
+      html += '</tbody></table><div class="footer"><p class="aom">DLSL A²OM</p><p>DLSL Automated Operations Module</p><p>© 2025 De La Salle Lipa — Technology Operations and Innovations Center (TOIC)</p></div></body></html>';
+      w.document.write(html); w.document.close();
+      setTimeout(function() { w.print(); }, 500);
+      showToast('PDF report ready for print', 'success');
+    }
+
+    /* ===== EMAIL MODAL ===== */
+    function openEmailModal() {
+      var filtered = getFilteredList();
+      if (!filtered.length) { showToast('No data to email', 'error'); return; }
+      document.getElementById('emailTo').value = document.getElementById('userEmailDisplay').textContent || '';
+      document.getElementById('emailSubject').value = 'DARF Dashboard Report — ' + new Date().toLocaleDateString();
+      document.getElementById('emailMessage').value = '';
+      document.getElementById('emailSendBtn').disabled = false;
+      document.getElementById('emailSendBtn').innerHTML = '📧 Send Report';
+      document.getElementById('emailModalOverlay').classList.add('open');
+    }
+    function closeEmailModal() { document.getElementById('emailModalOverlay').classList.remove('open'); }
+
+    function sendEmailReport() {
+      var to = document.getElementById('emailTo').value.trim();
+      var subj = document.getElementById('emailSubject').value.trim();
+      var msg = document.getElementById('emailMessage').value.trim();
+      if (!to) { showToast('Please enter a recipient email', 'error'); return; }
+      if (!to.endsWith('@dlsl.edu.ph')) { showToast('Email must be @dlsl.edu.ph', 'error'); return; }
+      var btn = document.getElementById('emailSendBtn');
+      btn.disabled = true; btn.innerHTML = '⏳ Sending...';
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res && res.success) {
+            showToast('📧 Report sent to ' + to, 'success');
+            closeEmailModal();
+          } else {
+            showToast('❌ ' + (res ? res.message : 'Failed to send'), 'error');
+            btn.disabled = false; btn.innerHTML = '📧 Send Report';
+          }
+        })
+        .withFailureHandler(function(err) {
+          showToast('❌ ' + (err ? err.message : 'Error sending email'), 'error');
+          btn.disabled = false; btn.innerHTML = '📧 Send Report';
+        })
+        .emailDashboardReport(to, subj, msg, currentFilter);
+    }
+
+    /* ===== DATE FILTER ===== */
+    function clearDateFilter() {
+      document.getElementById('dateFrom').value = '';
+      document.getElementById('dateTo').value = '';
+      applyFilters();
+    }
+
+    /* ===== LOAD DASHBOARD ===== */
+    function loadDashboard() {
+      document.getElementById('loadingOverlay').classList.add('visible');
+      google.script.run
+        .withSuccessHandler(function(res) {
+          document.getElementById('loadingOverlay').classList.remove('visible');
+          if (!res || !res.success) {
+            var msg = res ? res.message : 'No response. Check deployment settings.';
+            showToast('Error: ' + msg, 'error');
+            document.getElementById('roleBadge').textContent = 'Error';
+            document.getElementById('tableBody').innerHTML = '<tr><td colspan="6"><div class="empty-state"><h3>Could not load data</h3><p>'+msg+'</p></div></td></tr>';
+            return;
+          }
+          userRole = res.role || '';
+          allRequests = res.requests || [];
+          document.getElementById('roleBadge').textContent = userRole;
+          document.getElementById('userEmailDisplay').textContent = res.userEmail || '';
+          updateStats(); applyFilters();
+        })
+        .withFailureHandler(function(err) {
+          document.getElementById('loadingOverlay').classList.remove('visible');
+          var msg = err ? err.message : 'Unknown error';
+          showToast('Error: ' + msg, 'error');
+          document.getElementById('roleBadge').textContent = 'Error';
+          document.getElementById('tableBody').innerHTML = '<tr><td colspan="6"><div class="empty-state"><h3>Failed to load</h3><p>'+msg+'</p></div></td></tr>';
+        })
+        .getDashboardRequests();
+    }
+
+    function isWaitingRequester(r) { return r.status.indexOf('Awaiting Requester') >= 0; }
+
+    function updateStats() {
+      var s = allRequests;
+      document.getElementById('statTotal').textContent = s.length;
+      var act = 0;
+      if (userRole.includes('Data Processor') || userRole.includes('DPO')) act += s.filter(function(r){ return r.status === 'Approved - Pending Data Processing'; }).length;
+      if (userRole.includes('DPO')) act += s.filter(function(r){ return r.status === 'Pending - DPO Review'; }).length;
+      document.getElementById('statAction').textContent = act;
+      document.getElementById('statProgress').textContent = s.filter(function(r){ return r.status.includes('Pending') && !r.status.includes('Disapproved') && !r.status.includes('Awaiting'); }).length;
+      document.getElementById('statWaiting').textContent = s.filter(function(r){ return isWaitingRequester(r); }).length;
+      document.getElementById('statComplete').textContent = s.filter(function(r){ return r.status.includes('Complete'); }).length;
+      document.getElementById('statRejected').textContent = s.filter(function(r){ return r.status.includes('Disapproved') || r.status.includes('Not Cleared') || r.status.includes('Withdrawn'); }).length;
+    }
+
+    function setFilter(f, btn) {
+      currentFilter = f;
+      document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active'); applyFilters();
+    }
+
+    function needsMyAction(r) {
+      if ((userRole.includes('Data Processor') || userRole.includes('DPO')) && r.status === 'Approved - Pending Data Processing') return true;
+      if (userRole.includes('DPO') && r.status === 'Pending - DPO Review') return true;
+      return false;
+    }
+
+    function getFilteredList() {
+      var q = document.getElementById('searchInput').value.toLowerCase();
+      var df = document.getElementById('dateFrom').value;
+      var dt = document.getElementById('dateTo').value;
+      return allRequests.filter(function(r) {
+        var match = !q || r.requestId.toLowerCase().includes(q) || r.requesterName.toLowerCase().includes(q) || (r.dataSourceCategory||'').toLowerCase().includes(q);
+        if (!match) return false;
+        if (df || dt) { var rd = r.dateOfRequest || ''; if (df && rd < df) return false; if (dt && rd > dt) return false; }
+        switch (currentFilter) {
+          case 'action':   return needsMyAction(r);
+          case 'pending':  return r.status.includes('Pending') && !r.status.includes('Disapproved') && !r.status.includes('Awaiting');
+          case 'waiting':  return isWaitingRequester(r);
+          case 'complete': return r.status.includes('Complete');
+          case 'rejected': return r.status.includes('Disapproved') || r.status.includes('Not Cleared') || r.status.includes('Withdrawn');
+          default: return true;
+        }
+      });
+    }
+
+    function applyFilters() {
+      var list = getFilteredList();
+      list.sort(function(a, b) {
+        return (needsMyAction(a)?0:isWaitingRequester(a)?1:2) - (needsMyAction(b)?0:isWaitingRequester(b)?1:2) || new Date(b.timestamp) - new Date(a.timestamp);
+      });
+      document.getElementById('recordCount').textContent = list.length + ' record' + (list.length !== 1 ? 's' : '');
+      renderTable(list);
+    }
+
+    function renderTable(list) {
+      var tb = document.getElementById('tableBody');
+      if (!list.length) { tb.innerHTML = '<tr><td colspan="6"><div class="empty-state"><h3>No requests found</h3><p>Try adjusting your filters.</p></div></td></tr>'; return; }
+      tb.innerHTML = list.map(function(r) {
+        var actionable = needsMyAction(r), waiting = isWaitingRequester(r);
+        var rowClass = actionable ? 'row-action' : waiting ? 'row-waiting' : '';
+        var actionBtn = '<span style="color:#ccc;font-size:11px;">—</span>';
+        if ((userRole.includes('Data Processor') || userRole.includes('DPO')) && r.status === 'Approved - Pending Data Processing')
+          actionBtn = '<button class="btn btn-grant" onclick="openGrantModal(\''+r.requestId+'\')">⚙️ Grant</button>';
+        else if (r.status.includes('Complete')) actionBtn = '<span class="btn btn-done">✅ Done</span>';
+        return '<tr class="'+rowClass+'"><td><span class="req-id">'+r.requestId+'</span></td><td><div class="req-name">'+r.requesterName+'</div><div class="req-email">'+r.requesterEmail+'</div></td><td style="white-space:nowrap;">'+(r.dateOfRequest||'')+'</td><td><span class="status-pill '+getPill(r.status)+'">'+shortStatus(r.status)+'</span></td><td style="text-align:center"><button class="btn btn-view" onclick="openDetailModal(\''+r.requestId+'\')">📄 View</button></td><td style="text-align:center">'+actionBtn+'</td></tr>';
+      }).join('');
+    }
+
+    function getPill(s) {
+      if (s.includes('Complete')) return 'pill-complete';
+      if (s.includes('Disapproved')||s.includes('Not Cleared')||s.includes('Withdrawn')) return 'pill-rejected';
+      if (s.includes('Approved - Pending')) return 'pill-processing';
+      if (s.includes('Awaiting Requester')||s.includes('With Recommendation')) return 'pill-waiting';
+      return 'pill-pending';
+    }
+
+    function shortStatus(s) {
+      var map = {'Pending - Immediate Head Approval':'Awaiting Head','Pending - DPO Review':'Awaiting DPO','Pending - Data Owner Endorsement':'Awaiting Owner','Approved - Pending Data Processing':'Ready to Process','Pending - Immediate Head Re-review':'Head Re-review','Pending - DPO Re-review':'DPO Re-review','Pending - Data Owner Re-review':'Owner Re-review','Withdrawn by Requester':'🚫 Withdrawn'};
+      if (map[s]) return map[s];
+      if (s.includes('Complete')) return 'Complete';
+      if (s.includes('Disapproved')) return 'Disapproved';
+      if (s.includes('Not Cleared')) return 'Not Cleared';
+      if (s.includes('Withdrawn')) return '🚫 Withdrawn';
+      if (s.includes('Awaiting Requester')) return '⏳ Awaiting Requester';
+      return s.length > 26 ? s.substring(0, 26) + '…' : s;
+    }
+
+    /* ===== DETAIL MODAL ===== */
+    function getReq(id) { return allRequests.find(function(r){ return r.requestId === id; }); }
+
+    function chainStepHtml(label, status, date, remarks) {
+      var icon = '🕐', cls = 'ci-pending';
+      if (['Endorsed','Approved','Access Granted'].includes(status)) { icon = '✅'; cls = 'ci-done'; }
+      else if (['Disapproved','Not Cleared'].includes(status)) { icon = '❌'; cls = 'ci-rejected'; }
+      else if (status && (status.indexOf('With Recommendation')>=0||status.indexOf('Requester Confirmed')>=0||status.indexOf('Awaiting')>=0)) { icon = '⏳'; cls = 'ci-waiting'; }
+      var d = date ? ' · ' + new Date(date).toLocaleString() : '';
+      var splitMarker = '\n\n── Requester Reply ──\n';
+      var recText = remarks || '', replyText = '';
+      if (recText.includes(splitMarker)) { var parts = recText.split(splitMarker); recText = parts[0]; replyText = parts[1]||''; }
+      var html = '<div class="chain-step"><div class="chain-icon '+cls+'">'+icon+'</div><div style="flex:1;"><strong>'+label+'</strong><br><span style="font-size:11px;color:#888;">'+(status||'Pending')+d+'</span>';
+      if (recText && (status||'').indexOf('With Recommendation')>=0) html += '<div class="rec-box">📝 Recommendation: '+recText+'</div>';
+      if (replyText) html += '<div style="margin-top:4px;padding:5px 10px;background:#E8F5E9;border-left:3px solid #4CAF50;border-radius:0 4px 4px 0;font-size:11px;color:#1B5E20;"><strong>💬 Requester reply:</strong> '+replyText+'</div>';
+      html += '</div></div>';
+      return html;
+    }
+
+    function openDetailModal(id) {
+      var r = getReq(id); if (!r) return;
+      document.getElementById('modalTitle').textContent = r.requestId;
+      document.getElementById('modalBody').innerHTML =
+        '<div class="info-grid"><div class="info-box"><h4>Requester</h4><p><strong>'+r.requesterName+'</strong><br>'+r.requesterEmail+'<br>'+r.requesterOffice+'</p></div><div class="info-box"><h4>Data Source</h4><p><strong>'+(r.dataSourceCategory||'—')+'</strong></p></div><div class="info-box full"><h4>Personal Data Requested</h4><p>'+(r.personalDataRequested||'—')+'</p></div><div class="info-box"><h4>Access Period</h4><p>'+(r.accessStartDate||'—')+' to '+(r.accessEndDate||'—')+'</p></div><div class="info-box"><h4>Security Measures</h4><p>'+(r.securityMeasures||'—')+'</p></div><div class="info-box full"><h4>Internal Recipients</h4><p>'+(r.internalRecipients||'Requester only')+'</p></div>'+(r.externalRecipients?'<div class="info-box full"><h4>External Recipients</h4><p>'+r.externalRecipients+'</p></div>':'')+'</div>'+
+        '<h4 style="font-size:12px;color:#555;margin:14px 0 6px;text-transform:uppercase;letter-spacing:0.4px;">Approval Chain (Head → DPO → Data Owner → Processor)</h4>'+
+        chainStepHtml('1. Immediate Head'+(r.immediateHeadName?' — '+r.immediateHeadName:''), r.immediateHeadStatus, r.immediateHeadDate, r.immediateHeadRemarks)+
+        chainStepHtml('2. Data Protection Officer', r.dpoStatus, r.dpoDate, r.dpoRemarks)+
+        chainStepHtml('3. Data Owner'+(r.dataOwnerTitle?' ('+r.dataOwnerTitle+')':''), r.dataOwnerStatus, r.dataOwnerDate, r.dataOwnerRemarks)+
+        chainStepHtml('4. Data Processor'+(r.dataProcessorName?' — '+r.dataProcessorName:''), r.dataProcessorStatus, r.dataProcessorDate, '')+
+        (r.expectedTimeline?'<div style="background:#E8F5E9;border-radius:6px;padding:10px 14px;margin-top:14px;"><h4 style="font-size:10px;color:#1B5E20;text-transform:uppercase;margin-bottom:2px;">Expected Timeline</h4><p style="font-size:13px;font-weight:600;color:#333;">'+r.expectedTimeline+'</p></div>':'')+
+        (r.accessMethod?'<div style="background:#E3F2FD;border-radius:6px;padding:10px 14px;margin-top:8px;"><h4 style="font-size:10px;color:#1565C0;text-transform:uppercase;margin-bottom:2px;">Access Method</h4><p style="font-size:13px;color:#333;">'+r.accessMethod+'</p></div>':'')+
+        (r.processorComments?'<div style="background:#F3E5F5;border-radius:6px;padding:10px 14px;margin-top:8px;"><h4 style="font-size:10px;color:#7B1FA2;text-transform:uppercase;margin-bottom:2px;">Processor Comments</h4><p style="font-size:13px;color:#333;">'+r.processorComments+'</p></div>':'');
+      document.getElementById('modalOverlay').classList.add('open');
+    }
+
+    /* ===== GRANT MODAL ===== */
+    function openGrantModal(id) {
+      var r = getReq(id); if (!r) return;
+      document.getElementById('modalTitle').textContent = r.requestId + ' — Grant Access';
+      document.getElementById('modalBody').innerHTML =
+        '<div class="info-grid"><div class="info-box"><h4>Requester</h4><p><strong>'+r.requesterName+'</strong><br>'+r.requesterEmail+'</p></div><div class="info-box"><h4>Data Source</h4><p>'+(r.dataSourceCategory||'—')+'</p></div><div class="info-box full"><h4>Data Requested</h4><p>'+(r.personalDataRequested||'—')+'</p></div><div class="info-box"><h4>Access Period</h4><p>'+(r.accessStartDate||'—')+' to '+(r.accessEndDate||'—')+'</p></div><div class="info-box"><h4>Security Measures</h4><p>'+(r.securityMeasures||'—')+'</p></div></div>'+
+        '<div class="grant-section"><h3>⚙️ Grant Access & Notify Requester</h3><p style="font-size:12px;color:#666;margin-bottom:4px;">The requester will receive an email with the timeline, access method, and your comments.</p><label>Expected Timeline <span style="color:#f44336;">*</span></label><select id="grantTimeline"><option value="">— Select timeline —</option><option value="1 working day — data is readily available">1 working day — data is readily available</option><option value="5 working days — newly created report required">5 working days — newly created report required</option><option value="Custom (see comments below)">Custom (see comments below)</option></select><label>Access Method</label><select id="grantMethod"><option value="Info Hub">Info Hub</option><option value="Direct Delivery">Direct Delivery</option><option value="Google Drive (restricted access)">Google Drive (restricted access)</option><option value="Email Attachment">Email Attachment</option><option value="Hard Copy Pickup">Hard Copy Pickup</option></select><label>Comments / Instructions</label><textarea id="grantComments" placeholder="e.g., Data available in Info Hub under Reports."></textarea><button class="grant-submit" id="grantBtn" onclick="submitGrant(\''+id+'\')">✅ Mark as Access Granted & Notify Requester</button></div>';
+      document.getElementById('modalOverlay').classList.add('open');
+    }
+
+    function submitGrant(id) {
+      var tl = document.getElementById('grantTimeline').value, mt = document.getElementById('grantMethod').value, cm = document.getElementById('grantComments').value;
+      if (!tl) { showToast('Please select an expected timeline.', 'error'); return; }
+      var btn = document.getElementById('grantBtn'); btn.disabled = true; btn.textContent = '⏳ Processing...';
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.success) { showToast('✅ Access granted! Requester notified.', 'success'); closeModal(); loadDashboard(); }
+          else { showToast('❌ '+res.message, 'error'); btn.disabled = false; btn.textContent = '✅ Mark as Access Granted & Notify Requester'; }
+        })
+        .withFailureHandler(function(err) {
+          showToast('❌ '+(err?err.message:'Error'), 'error'); btn.disabled = false; btn.textContent = '✅ Mark as Access Granted & Notify Requester';
+        })
+        .grantAccessFromDashboard(id, tl, cm, mt);
+    }
+
+    function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+    function showToast(msg, type) {
+      var t = document.getElementById('toast');
+      t.textContent = msg; t.className = 'toast toast-' + type + ' show';
+      setTimeout(function(){ t.classList.remove('show'); }, 4000);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Request Status</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, <?= LASALLE_GREEN ?> 0%, #2E7D32 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    .header h1 { font-size: 24px; margin-bottom: 5px; }
+    .header p { opacity: 0.9; }
+    .content { padding: 30px; }
+
+    /* Status badge */
+    .status-badge {
+      display: inline-block;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 14px;
+      margin: 10px 0;
+    }
+    .status-pending    { background: #FFF3E0; color: #E65100; border: 2px solid #FF9800; }
+    .status-waiting    { background: #FFF8E1; color: #F57F17; border: 2px solid #FFB300; }
+    .status-approved   { background: #E8F5E9; color: #2E7D32; border: 2px solid #4CAF50; }
+    .status-rejected   { background: #FFEBEE; color: #C62828; border: 2px solid #f44336; }
+    .status-complete   { background: #E8F5E9; color: #1B5E20; border: 2px solid #1B5E20; }
+
+    /* Progress tracker */
+    .progress-tracker {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin: 30px 0;
+      padding: 0 10px;
+      position: relative;
+    }
+    .progress-tracker::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 40px;
+      right: 40px;
+      height: 3px;
+      background: #E0E0E0;
+      z-index: 0;
+    }
+    .progress-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+      flex: 1;
+    }
+    .step-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      border: 3px solid #E0E0E0;
+      background: white;
+      color: #999;
+    }
+    .step-circle.done     { background: #4CAF50; border-color: #4CAF50; color: white; }
+    .step-circle.active   { background: #FF9800; border-color: #FF9800; color: white; animation: pulse 2s infinite; }
+    .step-circle.waiting  { background: #FFB300; border-color: #FFB300; color: white; animation: pulse 2s infinite; }
+    .step-circle.rejected { background: #f44336; border-color: #f44336; color: white; }
+    .step-label { font-size: 11px; text-align: center; color: #999; max-width: 90px; }
+    .step-label.done    { color: #2E7D32; font-weight: 600; }
+    .step-label.active  { color: #E65100; font-weight: 600; }
+    .step-label.waiting { color: #F57F17; font-weight: 600; }
+    .step-label.rejected{ color: #C62828; font-weight: 600; }
+    .step-date { font-size: 10px; color: #888; margin-top: 2px; }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,152,0,0.4); }
+      50%       { box-shadow: 0 0 0 8px rgba(255,152,0,0); }
+    }
+
+    /* Recommendation notice */
+    .recommendation-notice {
+      background: #FFF8E1;
+      border: 2px solid #FFB300;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 15px 0;
+    }
+    .recommendation-notice h4 { color: #F57F17; margin-bottom: 8px; }
+    .recommendation-notice blockquote {
+      border-left: 4px solid #FF9800;
+      margin: 8px 0 0;
+      padding: 8px 16px;
+      background: #FFF3E0;
+      font-style: italic;
+      color: #333;
+      border-radius: 0 4px 4px 0;
+    }
+
+    /* Detail sections */
+    .detail-section {
+      background: #f8f9fa;
+      border-left: 4px solid <?= LASALLE_GREEN ?>;
+      padding: 20px;
+      margin: 15px 0;
+      border-radius: 4px;
+    }
+    .detail-section h3 { color: <?= LASALLE_GREEN ?>; margin-bottom: 10px; font-size: 16px; }
+    .detail-row { display: flex; padding: 6px 0; border-bottom: 1px solid #eee; }
+    .detail-label { font-weight: 600; color: #555; min-width: 200px; flex-shrink: 0; }
+    .detail-value { color: #333; }
+
+    .approval-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .approval-table th { background: <?= LASALLE_GREEN ?>; color: white; padding: 10px; text-align: left; font-size: 13px; }
+    .approval-table td { padding: 10px; border-bottom: 1px solid #ddd; font-size: 13px; }
+    .approval-table tr:nth-child(even) { background: #f9f9f9; }
+    .badge-done    { display:inline-block; padding:2px 8px; border-radius:10px; background:#E8F5E9; color:#2E7D32; font-weight:600; font-size:11px; }
+    .badge-pending { display:inline-block; padding:2px 8px; border-radius:10px; background:#FFF3E0; color:#E65100; font-weight:600; font-size:11px; }
+    .badge-waiting { display:inline-block; padding:2px 8px; border-radius:10px; background:#FFF8E1; color:#F57F17; font-weight:600; font-size:11px; }
+    .badge-reject  { display:inline-block; padding:2px 8px; border-radius:10px; background:#FFEBEE; color:#C62828; font-weight:600; font-size:11px; }
+
+    @media (max-width: 768px) {
+      .content { padding: 15px; }
+      .progress-tracker { flex-wrap: wrap; gap: 10px; }
+      .progress-tracker::before { display: none; }
+      .detail-row { flex-direction: column; }
+      .detail-label { min-width: auto; margin-bottom: 2px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📊 Request Status Tracker</h1>
+      <p>De La Salle Lipa - Data Privacy Office</p>
+    </div>
+
+    <div class="content">
+      <?
+        var status = request[2];
+        var isComplete  = status.indexOf('Complete') >= 0;
+        var isRejected  = status.indexOf('Disapproved') >= 0 || status.indexOf('Not Cleared') >= 0;
+        var isWithdrawn = status.indexOf('Withdrawn') >= 0;
+        var isWaiting   = status.indexOf('Awaiting Requester') >= 0;
+
+        // NEW COLUMN INDICES (0-based):
+        // S=18 IH Status, T=19 IH Date, U=20 IH Remarks
+        // V=21 DPO Status, W=22 DPO Date, X=23 DPO Remarks
+        // Y=24 Owner Title, Z=25 Owner Name, AA=26 Owner Email
+        // AB=27 Owner Status, AC=28 Owner Date, AD=29 Owner Remarks
+        // AE=30 Proc Name, AF=31 Proc Email, AG=32 Proc Status, AH=33 Proc Date
+        // AI=34 Access Method, AJ=35 Proc Comments, AK=36 Timeline
+
+        var headStatus    = request[18] || 'Pending';
+        var headDate      = request[19];
+        var headRemarks   = request[20] || '';
+
+        var dpoStatus     = request[21] || 'Pending';
+        var dpoDate       = request[22];
+        var dpoRemarks    = request[23] || '';
+
+        var ownerTitle    = request[24] || '';
+        var ownerStatus   = request[27] || 'Pending';
+        var ownerDate     = request[28];
+        var ownerRemarks  = request[29] || '';
+
+        var procStatus    = request[32] || 'Pending';
+        var procDate      = request[33];
+        var procName      = request[30] || '';
+
+        // Helper: returns step CSS class based on status
+        function stepClass(stepStatus, prevDone) {
+          if (stepStatus === 'Endorsed' || stepStatus === 'Approved' || stepStatus === 'Access Granted') return 'done';
+          if (stepStatus === 'Disapproved' || stepStatus === 'Not Cleared') return 'rejected';
+          if (stepStatus.indexOf('With Recommendation') >= 0 || stepStatus.indexOf('Awaiting') >= 0 || stepStatus.indexOf('Requester Confirmed') >= 0) return 'waiting';
+          if (prevDone && stepStatus === 'Pending') return 'active';
+          return '';
+        }
+
+        function stepIcon(cls) {
+          if (cls === 'done') return '✓';
+          if (cls === 'rejected') return '✗';
+          if (cls === 'waiting') return '⏳';
+          return '';
+        }
+
+        var headClass  = headStatus === 'Endorsed' ? 'done' : headStatus === 'Disapproved' ? 'rejected' :
+                         (headStatus.indexOf('With Recommendation') >= 0 || headStatus.indexOf('Requester Confirmed') >= 0) ? 'waiting' : 'active';
+        var dpoClass   = stepClass(dpoStatus, headStatus === 'Endorsed');
+        var ownerClass = stepClass(ownerStatus, dpoStatus === 'Approved');
+        var procClass  = stepClass(procStatus, ownerStatus === 'Endorsed');
+        var complClass = isComplete ? 'done' : '';
+
+        function badgeClass(s) {
+          if (s === 'Endorsed' || s === 'Approved' || s === 'Access Granted') return 'badge-done';
+          if (s === 'Disapproved' || s === 'Not Cleared') return 'badge-reject';
+          if (s.indexOf('With Recommendation') >= 0 || s.indexOf('Requester Confirmed') >= 0 || s.indexOf('Awaiting') >= 0) return 'badge-waiting';
+          return 'badge-pending';
+        }
+      ?>
+
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h2 style="color: <?= LASALLE_GREEN ?>;">Request ID: <?= requestId ?></h2>
+        <span class="status-badge <?= isComplete ? 'status-complete' : isRejected || isWithdrawn ? 'status-rejected' : isWaiting ? 'status-waiting' : 'status-pending' ?>">
+          <?= status ?>
+        </span>
+      </div>
+
+      <!-- Pending with Recommendation notice (if applicable) -->
+      <? if (headRemarks && headStatus.indexOf('With Recommendation') >= 0) { ?>
+      <div class="recommendation-notice">
+        <h4>⏳ Pending Recommendation from Immediate Head:</h4>
+        <blockquote><?= headRemarks ?></blockquote>
+      </div>
+      <? } ?>
+      <? if (dpoRemarks && dpoStatus.indexOf('With Recommendation') >= 0) { ?>
+      <div class="recommendation-notice">
+        <h4>⏳ Pending Recommendation from Data Protection Officer:</h4>
+        <blockquote><?= dpoRemarks ?></blockquote>
+      </div>
+      <? } ?>
+      <? if (ownerRemarks && ownerStatus.indexOf('With Recommendation') >= 0) { ?>
+      <div class="recommendation-notice">
+        <h4>⏳ Pending Recommendation from Data Owner (<?= ownerTitle ?>):</h4>
+        <blockquote><?= ownerRemarks ?></blockquote>
+      </div>
+      <? } ?>
+
+      <!-- Progress Tracker — NEW ORDER: Head → DPO → Data Owner → Processor → Complete -->
+      <div class="progress-tracker">
+        <div class="progress-step">
+          <div class="step-circle done">✓</div>
+          <div class="step-label done">Submitted</div>
+          <div class="step-date"><?= formatDate(request[1]) ?></div>
+        </div>
+
+        <div class="progress-step">
+          <div class="step-circle <?= headClass ?>"><?= stepIcon(headClass) || '2' ?></div>
+          <div class="step-label <?= headClass ?>">Immediate Head</div>
+          <? if (headDate) { ?><div class="step-date"><?= formatDate(headDate) ?></div><? } ?>
+        </div>
+
+        <div class="progress-step">
+          <div class="step-circle <?= dpoClass ?>"><?= stepIcon(dpoClass) || '3' ?></div>
+          <div class="step-label <?= dpoClass ?>">DPO</div>
+          <? if (dpoDate) { ?><div class="step-date"><?= formatDate(dpoDate) ?></div><? } ?>
+        </div>
+
+        <div class="progress-step">
+          <div class="step-circle <?= ownerClass ?>"><?= stepIcon(ownerClass) || '4' ?></div>
+          <div class="step-label <?= ownerClass ?>">Data Owner<br><?= ownerTitle ? '(' + ownerTitle + ')' : '' ?></div>
+          <? if (ownerDate) { ?><div class="step-date"><?= formatDate(ownerDate) ?></div><? } ?>
+        </div>
+
+        <div class="progress-step">
+          <div class="step-circle <?= procClass ?>"><?= stepIcon(procClass) || '5' ?></div>
+          <div class="step-label <?= procClass ?>">Data Processor</div>
+          <? if (procDate) { ?><div class="step-date"><?= formatDate(procDate) ?></div><? } ?>
+        </div>
+
+        <div class="progress-step">
+          <div class="step-circle <?= complClass ?>"><?= complClass === 'done' ? '✓' : '✓' ?></div>
+          <div class="step-label <?= complClass ?>">Complete</div>
+        </div>
+      </div>
+
+      <!-- Request Details -->
+      <div class="detail-section">
+        <h3>👤 Requester Information</h3>
+        <div class="detail-row"><div class="detail-label">Name:</div><div class="detail-value"><?= request[3] ?></div></div>
+        <div class="detail-row"><div class="detail-label">Email:</div><div class="detail-value"><?= request[4] ?></div></div>
+        <div class="detail-row"><div class="detail-label">Office/Course:</div><div class="detail-value"><?= request[5] ?></div></div>
+        <div class="detail-row"><div class="detail-label">Date of Request:</div><div class="detail-value"><?= request[6] ?></div></div>
+        <div class="detail-row"><div class="detail-label">Data Source:</div><div class="detail-value"><strong><?= request[7] ?></strong></div></div>
+      </div>
+
+      <div class="detail-section">
+        <h3>📄 Data Requested</h3>
+        <div class="detail-row"><div class="detail-value" style="white-space: pre-line;"><?= request[8] ?></div></div>
+      </div>
+
+      <div class="detail-section">
+        <h3>📅 Access Period & Security</h3>
+        <div class="detail-row"><div class="detail-label">Access Period:</div><div class="detail-value"><?= request[13] ?> to <?= request[14] ?></div></div>
+        <div class="detail-row"><div class="detail-label">Security Measures:</div><div class="detail-value"><?= request[15] ?></div></div>
+        <? if (request[34]) { ?>
+        <div class="detail-row"><div class="detail-label">Access Method:</div><div class="detail-value"><strong><?= request[34] ?></strong></div></div>
+        <? } ?>
+        <? if (request[36]) { ?>
+        <div class="detail-row"><div class="detail-label">Expected Timeline:</div><div class="detail-value"><strong><?= request[36] ?></strong></div></div>
+        <? } ?>
+        <? if (request[35]) { ?>
+        <div class="detail-row"><div class="detail-label">Processor Comments:</div><div class="detail-value"><em><?= request[35] ?></em></div></div>
+        <? } ?>
+      </div>
+
+      <!-- Approval Chain Status — NEW ORDER -->
+      <div class="detail-section">
+        <h3>✅ Approval Chain</h3>
+        <?
+          // Helper to split remarks into recommendation + requester reply
+          function splitRemarks(remarks) {
+            if (!remarks) return { rec: '', reply: '' };
+            var marker = '\n\n── Requester Reply ──\n';
+            var idx = remarks.indexOf(marker);
+            if (idx >= 0) {
+              return { rec: remarks.substring(0, idx), reply: remarks.substring(idx + marker.length) };
+            }
+            return { rec: remarks, reply: '' };
+          }
+          var headSplit  = splitRemarks(headRemarks);
+          var dpoSplit   = splitRemarks(dpoRemarks);
+          var ownerSplit = splitRemarks(ownerRemarks);
+
+          function remarksHtml(parts) {
+            if (!parts.rec && !parts.reply) return '—';
+            var html = '';
+            if (parts.rec)   html += '<span style="display:block;font-style:italic;color:#555;">' + parts.rec + '</span>';
+            if (parts.reply) html += '<span style="display:block;margin-top:6px;padding:4px 8px;background:#E8F5E9;border-left:3px solid #4CAF50;color:#1B5E20;font-size:11px;"><strong>Requester reply:</strong> ' + parts.reply + '</span>';
+            return html;
+          }
+        ?>
+        <table class="approval-table">
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Recommendation / Reply</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Immediate Head<br><small><?= request[16] ?></small></td>
+              <td><span class="<?= badgeClass(headStatus) ?>"><?= headStatus || 'Pending' ?></span></td>
+              <td><?= headDate ? formatDate(headDate) : '—' ?></td>
+              <td><small><?= remarksHtml(headSplit) ?></small></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Data Protection Officer</td>
+              <td><span class="<?= badgeClass(dpoStatus) ?>"><?= dpoStatus || 'Pending' ?></span></td>
+              <td><?= dpoDate ? formatDate(dpoDate) : '—' ?></td>
+              <td><small><?= remarksHtml(dpoSplit) ?></small></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Data Owner<br><small><?= ownerTitle ?> <?= request[25] ? '(' + request[25] + ')' : '' ?></small></td>
+              <td><span class="<?= badgeClass(ownerStatus) ?>"><?= ownerStatus || 'Pending' ?></span></td>
+              <td><?= ownerDate ? formatDate(ownerDate) : '—' ?></td>
+              <td><small><?= remarksHtml(ownerSplit) ?></small></td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Data Processor<br><small><?= procName ?></small></td>
+              <td><span class="<?= badgeClass(procStatus) ?>"><?= procStatus || 'Pending' ?></span></td>
+              <td><?= procDate ? formatDate(procDate) : '—' ?></td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="text-align: center; margin-top: 30px; padding: 20px; background: #f0f0f0; border-radius: 8px;">
+        <p style="color: #666; font-size: 13px;">
+          <strong>⏱️ Processing Timeline:</strong> 1 working day (if data is available) · 5 working days (for new reports)<br>
+          For questions, contact: <a href="mailto:dpo.office@dlsl.edu.ph" style="color: <?= LASALLE_GREEN ?>;">dpo.office@dlsl.edu.ph</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

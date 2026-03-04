@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DARF System - DLSL</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 50%, #1B5E20 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      flex-direction: column;
+    }
+
+    /* Animated background shapes */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      opacity: 0.06;
+      z-index: 0;
+    }
+    body::before {
+      width: 600px; height: 600px;
+      background: white;
+      top: -150px; right: -100px;
+      animation: float1 20s ease-in-out infinite;
+    }
+    body::after {
+      width: 400px; height: 400px;
+      background: white;
+      bottom: -100px; left: -80px;
+      animation: float2 25s ease-in-out infinite;
+    }
+    @keyframes float1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-40px, 30px); } }
+    @keyframes float2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(30px, -40px); } }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 960px;
+      width: 100%;
+      animation: fadeUp 0.6s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header card */
+    .header-card {
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 20px;
+      padding: 48px 40px 36px;
+      text-align: center;
+      color: white;
+      margin-bottom: 32px;
+    }
+    .logo-icon {
+      width: 72px; height: 72px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px;
+      margin: 0 auto 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .header-card h1 {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .header-card p {
+      font-size: 15px;
+      opacity: 0.88;
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    .header-card .subtitle {
+      font-size: 13px;
+      opacity: 0.7;
+      margin-top: 6px;
+    }
+
+    /* Options grid */
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .option-card {
+      background: white;
+      border-radius: 18px;
+      padding: 36px 30px;
+      cursor: pointer;
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      border: 3px solid transparent;
+    }
+    .option-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+      border-color: #1B5E20;
+    }
+    .option-card:active {
+      transform: translateY(-2px);
+    }
+
+    /* Decorative corner accent */
+    .option-card::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 100px; height: 100px;
+      border-radius: 0 18px 0 100%;
+      opacity: 0.08;
+      transition: opacity 0.3s;
+    }
+    .option-card:hover::before { opacity: 0.14; }
+    .card-single::before { background: #1B5E20; }
+    .card-bulk::before   { background: #004D40; }
+
+    .option-badge {
+      display: inline-block;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .badge-single { background: #E8F5E9; color: #1B5E20; }
+    .badge-bulk   { background: #E0F2F1; color: #004D40; }
+
+    .option-icon {
+      width: 56px; height: 56px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      margin-bottom: 18px;
+    }
+    .icon-single { background: #E8F5E9; }
+    .icon-bulk   { background: #E0F2F1; }
+
+    .option-card h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #222;
+      margin-bottom: 10px;
+    }
+    .option-card p.desc {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 18px;
+    }
+
+    .option-details {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+    }
+    .detail-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #555;
+      padding: 4px 0;
+    }
+    .detail-row .detail-icon {
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .detail-row strong { color: #333; }
+
+    .option-cta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      color: white;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .cta-single { background: linear-gradient(135deg, #1B5E20, #2E7D32); }
+    .cta-single:hover { background: linear-gradient(135deg, #145218, #256b28); }
+    .cta-bulk   { background: linear-gradient(135deg, #004D40, #00796B); }
+    .cta-bulk:hover { background: linear-gradient(135deg, #00382E, #00695C); }
+
+    .option-cta .arrow {
+      transition: transform 0.2s;
+    }
+    .option-card:hover .option-cta .arrow {
+      transform: translateX(4px);
+    }
+
+    /* Footer info */
+    .footer-info {
+      background: rgba(255,255,255,0.10);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      padding: 20px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-info p {
+      color: rgba(255,255,255,0.8);
+      font-size: 13px;
+    }
+    .footer-info a {
+      color: rgba(255,255,255,0.95);
+      text-decoration: none;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
+    .footer-info a:hover { opacity: 0.8; }
+    .footer-links { display: flex; gap: 16px; }
+    .footer-link {
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 20px;
+      transition: all 0.2s;
+      background: transparent;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .footer-link:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.4);
+    }
+
+    /* Copyright footer */
+    .copyright-footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      margin-top: 20px;
+      padding: 18px 24px;
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .copyright-footer p { margin: 0; }
+    .copyright-footer .aom {
+      font-size: 16px;
+      font-weight: 800;
+      color: rgba(255,255,255,0.75);
+      letter-spacing: 1.5px;
+      margin-bottom: 2px;
+    }
+    .copyright-footer .aom-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+    .copyright-footer .dept {
+      font-weight: 600;
+      color: rgba(255,255,255,0.45);
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    /* Loading state */
+    .loading-screen {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(27, 94, 32, 0.92);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+    .loading-screen.visible { display: flex; }
+    .spinner {
+      border: 4px solid rgba(255,255,255,0.2);
+      border-top: 4px solid white;
+      border-radius: 50%;
+      width: 44px; height: 44px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    @media (max-width: 768px) {
+      .options-grid { grid-template-columns: 1fr; }
+      .header-card { padding: 32px 24px 28px; }
+      .header-card h1 { font-size: 24px; }
+      .option-card { padding: 28px 22px; }
+      .footer-info { flex-direction: column; text-align: center; }
+      .footer-links { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="loading-screen" id="loadingScreen">
+    <div class="spinner"></div>
+    <p style="font-size: 16px; font-weight: 600;">Loading form...</p>
+  </div>
+
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header-card">
+      <div class="logo-icon">🔐</div>
+      <h1>Data Access Request Form</h1>
+      <p>Submit a formal request to access personal data managed by De La Salle Lipa. Choose the request type that best matches your needs.</p>
+      <p class="subtitle">Data Privacy Office — DLSL</p>
+    </div>
+
+    <!-- Two Options -->
+    <div class="options-grid">
+
+      <!-- Option 1: Single Request -->
+      <div class="option-card card-single" onclick="navigateTo('single')">
+        <span class="option-badge badge-single">Option 1</span>
+        <div class="option-icon icon-single">📄</div>
+        <h2>Single Request</h2>
+        <p class="desc">Request access to a specific set of personal data for a defined purpose. Ideal for individual research, reports, or one-time data needs.</p>
+
+        <div class="option-details">
+          <div class="detail-row">
+            <span class="detail-icon">⚙️</span>
+            <span>Processed by: <strong>Daisy Reyes</strong></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-icon">⏱️</span>
+            <span>Timeline: <strong>1–5 working days</strong></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-icon">📋</span>
+            <span>For: Individual data access requests</span>
+          </div>
+        </div>
+
+        <div class="option-cta cta-single">
+          📄 Start Single Request <span class="arrow">→</span>
+        </div>
+      </div>
+
+      <!-- Option 2: Bulk Request -->
+      <div class="option-card card-bulk" onclick="navigateTo('bulk')">
+        <span class="option-badge badge-bulk">Option 2</span>
+        <div class="option-icon icon-bulk">📦</div>
+        <h2>Bulk Request</h2>
+        <p class="desc">Request access to large volumes of data or multiple data sets at once. Ideal for department-wide reports, audits, or batch processing needs.</p>
+
+        <div class="option-details">
+          <div class="detail-row">
+            <span class="detail-icon">⚙️</span>
+            <span>Processed by: <strong>Arnel Albis</strong></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-icon">⏱️</span>
+            <span>Timeline: <strong>1–5 working days</strong></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-icon">📋</span>
+            <span>For: Large-volume or batch data requests</span>
+          </div>
+        </div>
+
+        <div class="option-cta cta-bulk">
+          📦 Start Bulk Request <span class="arrow">→</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-info">
+      <p>📧 Questions? Contact <a href="mailto:toic.office@dlsl.edu.ph">toic.office@dlsl.edu.ph</a></p>
+      <div class="footer-links">
+        <button class="footer-link" onclick="navigateToStatus()">📊 Track Request</button>
+        <button class="footer-link" onclick="navigateToDashboard()">🔒 Dashboard</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Copyright Footer -->
+  <div class="copyright-footer">
+    <p class="aom">DLSL A²OM</p>
+    <p class="aom-sub">DLSL Automated Operations Module</p>
+    <p>© 2025 De La Salle Lipa - Data Access Request Form</p>
+    <p class="dept">Technology Operations and Innovations Center (TOIC)</p>
+  </div>
+
+  <script>
+    var webAppUrl = '';
+
+    google.script.run
+      .withSuccessHandler(function(url) { webAppUrl = url; })
+      .getWebAppUrl();
+
+    function navigateTo(type) {
+      document.getElementById('loadingScreen').classList.add('visible');
+      if (webAppUrl) {
+        var a = document.createElement('a');
+        a.href = webAppUrl + '?page=' + type;
+        a.target = '_top';
+        document.body.appendChild(a);
+        a.click();
+      } else {
+        google.script.run
+          .withSuccessHandler(function(url) {
+            var a = document.createElement('a');
+            a.href = url + '?page=' + type;
+            a.target = '_top';
+            document.body.appendChild(a);
+            a.click();
+          })
+          .getWebAppUrl();
+      }
+    }
+
+    function navigateToStatus() {
+      var id = prompt('Enter your Request ID (e.g., DARF-20260224-XXXXXX):');
+      if (id && id.trim()) {
+        if (webAppUrl) {
+          var a = document.createElement('a');
+          a.href = webAppUrl + '?page=status&id=' + encodeURIComponent(id.trim());
+          a.target = '_top';
+          document.body.appendChild(a);
+          a.click();
+        } else {
+          google.script.run
+            .withSuccessHandler(function(url) {
+              var a = document.createElement('a');
+              a.href = url + '?page=status&id=' + encodeURIComponent(id.trim());
+              a.target = '_top';
+              document.body.appendChild(a);
+              a.click();
+            })
+            .getWebAppUrl();
+        }
+      }
+    }
+
+    function navigateToDashboard() {
+      if (webAppUrl) {
+        var a = document.createElement('a');
+        a.href = webAppUrl + '?page=dashboard';
+        a.target = '_top';
+        document.body.appendChild(a);
+        a.click();
+      } else {
+        google.script.run
+          .withSuccessHandler(function(url) {
+            var a = document.createElement('a');
+            a.href = url + '?page=dashboard';
+            a.target = '_top';
+            document.body.appendChild(a);
+            a.click();
+          })
+          .getWebAppUrl();
+      }
+    }
+  </script>
+</body>
+</html>
