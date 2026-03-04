@@ -372,25 +372,117 @@
         <!-- Section 3: Personal Data Being Requested -->
         <div class="section">
           <h2 class="section-title"><span class="icon">📄</span>Personal Data Being Requested</h2>
-          <div id="dataItemsContainer">
-            <div class="data-item" data-index="0">
-              <div class="form-group">
-                <label>Personal Data Description <span class="required">*</span></label>
-                <input type="text" class="dataDescription" required placeholder="e.g., Student grades for SY 2024-2025">
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label>File Type <span class="required">*</span></label>
-                  <input type="text" class="dataFileType" value="Electronic" readonly style="background:#f0f0f0; cursor:default;">
-                </div>
-                <div class="form-group">
-                  <label>Purpose <span class="required">*</span></label>
-                  <input type="text" class="dataPurpose" required placeholder="e.g., Academic research">
-                </div>
+          <p class="helper-text" style="margin-bottom:16px;">Check all personal data fields being requested. At least one must be selected.</p>
+
+          <style>
+            .pd-category { margin-bottom: 18px; }
+            .pd-category-title { font-size: 13px; font-weight: 700; color: #1B5E20; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #C8E6C9; }
+            .pd-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px 12px; }
+            .pd-check { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #333; cursor: pointer; padding: 4px 6px; border-radius: 5px; transition: background 0.15s; }
+            .pd-check:hover { background: #E8F5E9; }
+            .pd-check input[type="checkbox"] { width: 15px; height: 15px; flex-shrink: 0; cursor: pointer; accent-color: #1B5E20; }
+            @media (max-width: 768px) { .pd-grid { grid-template-columns: repeat(2, 1fr); } }
+          </style>
+
+          <div id="pdCheckboxes">
+
+            <div class="pd-category">
+              <div class="pd-category-title">👤 Personal Information</div>
+              <div class="pd-grid">
+                <label class="pd-check"><input type="checkbox" value="Full Name"> Full Name</label>
+                <label class="pd-check"><input type="checkbox" value="Date of Birth"> Date of Birth</label>
+                <label class="pd-check"><input type="checkbox" value="Age"> Age</label>
+                <label class="pd-check"><input type="checkbox" value="Sex / Gender"> Sex / Gender</label>
+                <label class="pd-check"><input type="checkbox" value="Civil Status"> Civil Status</label>
+                <label class="pd-check"><input type="checkbox" value="Nationality / Citizenship"> Nationality / Citizenship</label>
+                <label class="pd-check"><input type="checkbox" value="Religion"> Religion</label>
+                <label class="pd-check"><input type="checkbox" value="Home Address"> Home Address</label>
+                <label class="pd-check"><input type="checkbox" value="Contact Number"> Contact Number</label>
+                <label class="pd-check"><input type="checkbox" value="Email Address"> Email Address</label>
+                <label class="pd-check"><input type="checkbox" value="Emergency Contact"> Emergency Contact</label>
+                <label class="pd-check"><input type="checkbox" value="Photo / ID Picture"> Photo / ID Picture</label>
               </div>
             </div>
+
+            <div class="pd-category">
+              <div class="pd-category-title">👨‍👩‍👧 Family Information</div>
+              <div class="pd-grid">
+                <label class="pd-check"><input type="checkbox" value="Father's Name"> Father's Name</label>
+                <label class="pd-check"><input type="checkbox" value="Mother's Name"> Mother's Name</label>
+                <label class="pd-check"><input type="checkbox" value="Guardian's Name"> Guardian's Name</label>
+                <label class="pd-check"><input type="checkbox" value="Parent/Guardian Contact"> Parent/Guardian Contact</label>
+                <label class="pd-check"><input type="checkbox" value="Parent/Guardian Address"> Parent/Guardian Address</label>
+                <label class="pd-check"><input type="checkbox" value="Parent/Guardian Occupation"> Parent/Guardian Occupation</label>
+              </div>
+            </div>
+
+            <div class="pd-category">
+              <div class="pd-category-title">🎓 Academic Records</div>
+              <div class="pd-grid">
+                <label class="pd-check"><input type="checkbox" value="Student ID Number"> Student ID Number</label>
+                <label class="pd-check"><input type="checkbox" value="Course / Program"> Course / Program</label>
+                <label class="pd-check"><input type="checkbox" value="Year Level / Grade Level"> Year Level / Grade Level</label>
+                <label class="pd-check"><input type="checkbox" value="Section / Block"> Section / Block</label>
+                <label class="pd-check"><input type="checkbox" value="School Year / Semester"> School Year / Semester</label>
+                <label class="pd-check"><input type="checkbox" value="Grades / Academic Performance"> Grades / Academic Performance</label>
+                <label class="pd-check"><input type="checkbox" value="Class Schedule"> Class Schedule</label>
+                <label class="pd-check"><input type="checkbox" value="Enrollment Status"> Enrollment Status</label>
+                <label class="pd-check"><input type="checkbox" value="Attendance Records"> Attendance Records</label>
+                <label class="pd-check"><input type="checkbox" value="Honors / Awards"> Honors / Awards</label>
+                <label class="pd-check"><input type="checkbox" value="Scholarship Information"> Scholarship Information</label>
+                <label class="pd-check"><input type="checkbox" value="Extracurricular Activities"> Extracurricular Activities</label>
+                <label class="pd-check"><input type="checkbox" value="Disciplinary Records"> Disciplinary Records</label>
+              </div>
+            </div>
+
+            <div class="pd-category">
+              <div class="pd-category-title">💼 Employment Information</div>
+              <div class="pd-grid">
+                <label class="pd-check"><input type="checkbox" value="Employee ID Number"> Employee ID Number</label>
+                <label class="pd-check"><input type="checkbox" value="Position / Designation"> Position / Designation</label>
+                <label class="pd-check"><input type="checkbox" value="Department / Office"> Department / Office</label>
+                <label class="pd-check"><input type="checkbox" value="Employment Status"> Employment Status</label>
+                <label class="pd-check"><input type="checkbox" value="Date of Employment"> Date of Employment</label>
+                <label class="pd-check"><input type="checkbox" value="Salary Information"> Salary Information</label>
+                <label class="pd-check"><input type="checkbox" value="Leave Records"> Leave Records</label>
+                <label class="pd-check"><input type="checkbox" value="Performance Evaluation"> Performance Evaluation</label>
+                <label class="pd-check"><input type="checkbox" value="Service Record"> Service Record</label>
+                <label class="pd-check"><input type="checkbox" value="Educational Background"> Educational Background</label>
+              </div>
+            </div>
+
+            <div class="pd-category">
+              <div class="pd-category-title">💰 Financial Information</div>
+              <div class="pd-grid">
+                <label class="pd-check"><input type="checkbox" value="Account / Reference Number"> Account / Reference Number</label>
+                <label class="pd-check"><input type="checkbox" value="Tuition Fees / Balance"> Tuition Fees / Balance</label>
+                <label class="pd-check"><input type="checkbox" value="Payment Records"> Payment Records</label>
+                <label class="pd-check"><input type="checkbox" value="Financial Aid / Scholarship Records"> Financial Aid / Scholarship Records</label>
+                <label class="pd-check"><input type="checkbox" value="Outstanding Obligations / Dues"> Outstanding Obligations / Dues</label>
+              </div>
+            </div>
+
+            <div class="pd-category">
+              <div class="pd-category-title">📝 Admissions & Assessment</div>
+              <div class="pd-grid">
+                <label class="pd-check"><input type="checkbox" value="Application Records"> Application Records</label>
+                <label class="pd-check"><input type="checkbox" value="Entrance Exam Results"> Entrance Exam Results</label>
+                <label class="pd-check"><input type="checkbox" value="Test / Assessment Scores"> Test / Assessment Scores</label>
+                <label class="pd-check"><input type="checkbox" value="Interview Records"> Interview Records</label>
+                <label class="pd-check"><input type="checkbox" value="Qualifying Exam Results"> Qualifying Exam Results</label>
+              </div>
+            </div>
+
           </div>
-          <button type="button" class="add-btn" onclick="addDataItem()"><span>➕</span> Add More Data Items</button>
+
+          <div class="form-group" style="margin-top:16px;">
+            <label>Other / Additional Details</label>
+            <input type="text" id="pdOther" placeholder="Specify any other personal data not listed above">
+          </div>
+          <div class="form-group">
+            <label>Purpose <span class="required">*</span></label>
+            <input type="text" id="pdPurpose" required placeholder="e.g., Academic research, HR compliance">
+          </div>
         </div>
 
         <!-- Section 4: Internal Data Recipients -->
@@ -521,7 +613,7 @@
   </div>
 
   <script>
-    let dataItemCount = 1, internalRecipientCount = 1, externalRecipientCount = 1;
+    let internalRecipientCount = 1, externalRecipientCount = 1;
     let lastRequestId = '';
     let webAppUrl = '';
 
@@ -575,13 +667,6 @@
       else google.script.run.withSuccessHandler(function(url){ window.top.location.href = url; }).getWebAppUrl();
     }
 
-    function addDataItem() {
-      var c = document.getElementById('dataItemsContainer'), el = document.createElement('div');
-      el.className = 'data-item'; el.setAttribute('data-index', dataItemCount);
-      el.innerHTML = '<button type="button" class="remove-btn" onclick="removeDataItem('+dataItemCount+')">×</button><div class="form-group"><label>Personal Data Description <span class="required">*</span></label><input type="text" class="dataDescription" required></div><div class="form-row"><div class="form-group"><label>File Type <span class="required">*</span></label><input type="text" class="dataFileType" value="Electronic" readonly style="background:#f0f0f0; cursor:default;"></div><div class="form-group"><label>Purpose <span class="required">*</span></label><input type="text" class="dataPurpose" required></div></div>';
-      c.appendChild(el); dataItemCount++;
-    }
-    function removeDataItem(i) { var el = document.querySelector('.data-item[data-index="'+i+'"]'); if (el) el.remove(); }
 
     function addInternalRecipient() {
       var c = document.getElementById('internalRecipientsContainer'), el = document.createElement('div');
@@ -656,12 +741,18 @@
       var sd = document.getElementById('accessStartDate').value, ed = document.getElementById('accessEndDate').value;
       if (sd && ed && new Date(sd) > new Date(ed)) { showAlert('Access End Date must be after Start Date'); return; }
 
-      var dataItems = [];
-      document.querySelectorAll('.data-item').forEach(function(item) {
-        var d = item.querySelector('.dataDescription').value, f = item.querySelector('.dataFileType').value, p = item.querySelector('.dataPurpose').value;
-        if (d && f && p) dataItems.push({ description: d, fileType: f, purpose: p });
+      var purpose = document.getElementById('pdPurpose').value.trim();
+      if (!purpose) { showAlert('Please specify the Purpose for the personal data request'); return; }
+
+      var checked = [];
+      document.querySelectorAll('#pdCheckboxes input[type="checkbox"]:checked').forEach(function(cb) {
+        checked.push(cb.value);
       });
-      if (dataItems.length === 0) { showAlert('Please add at least one data item'); return; }
+      var other = document.getElementById('pdOther').value.trim();
+      if (other) checked.push(other);
+      if (checked.length === 0) { showAlert('Please select at least one type of personal data being requested'); return; }
+
+      var dataItems = checked.map(function(d) { return { description: d, fileType: 'Electronic', purpose: purpose }; });
 
       var intRecips = [];
       document.querySelectorAll('#internalRecipientsContainer .recipient-item').forEach(function(item) {
