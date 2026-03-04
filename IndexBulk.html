@@ -378,11 +378,87 @@
         <!-- Section 6: Access Period -->
         <div class="section">
           <h2 class="section-title"><span class="icon">📅</span>Access Period & Security Measures</h2>
-          <div class="form-row">
-            <div class="form-group"><label>Start Date <span class="required">*</span></label><input type="date" id="accessStartDate" required></div>
-            <div class="form-group"><label>End Date <span class="required">*</span></label><input type="date" id="accessEndDate" required></div>
+
+          <style>
+            .duration-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+            .duration-btn { padding: 5px 14px; border: 1.5px solid #1B5E20; border-radius: 20px; background: #fff; color: #1B5E20; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+            .duration-btn:hover, .duration-btn.active { background: #1B5E20; color: #fff; }
+            .sm-category { margin-bottom: 16px; }
+            .sm-category-title { font-size: 13px; font-weight: 700; color: #1B5E20; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #C8E6C9; }
+            .sm-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 12px; }
+            .sm-check { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: #333; cursor: pointer; padding: 4px 6px; border-radius: 5px; transition: background 0.15s; }
+            .sm-check:hover { background: #E8F5E9; }
+            .sm-check input[type="checkbox"] { width: 15px; height: 15px; flex-shrink: 0; margin-top: 2px; cursor: pointer; accent-color: #1B5E20; }
+            @media (max-width: 768px) { .sm-grid { grid-template-columns: 1fr; } }
+          </style>
+
+          <div class="form-group">
+            <label>Quick Duration</label>
+            <div class="duration-btns">
+              <button type="button" class="duration-btn" onclick="setDuration(7)">1 Week</button>
+              <button type="button" class="duration-btn" onclick="setDuration(30)">1 Month</button>
+              <button type="button" class="duration-btn" onclick="setDuration(90)">3 Months</button>
+              <button type="button" class="duration-btn" onclick="setDuration(180)">6 Months</button>
+              <button type="button" class="duration-btn" onclick="setDuration(365)">1 Year</button>
+            </div>
           </div>
-          <div class="form-group"><label>Security Measures <span class="required">*</span></label><textarea id="securityMeasures" required rows="4" placeholder="Describe the security measures for handling bulk data..."></textarea></div>
+          <div class="form-row">
+            <div class="form-group"><label>Start Date of Access <span class="required">*</span></label><input type="date" id="accessStartDate" required onchange="syncEndDate()"></div>
+            <div class="form-group"><label>End Date of Access <span class="required">*</span></label><input type="date" id="accessEndDate" required></div>
+          </div>
+
+          <div class="form-group" style="margin-top:8px;">
+            <label>Security Measures to be Implemented <span class="required">*</span></label>
+          </div>
+
+          <div id="smCheckboxes">
+            <div class="sm-category">
+              <div class="sm-category-title">🔒 Physical Security</div>
+              <div class="sm-grid">
+                <label class="sm-check"><input type="checkbox" value="Locked cabinet / secure storage"> Locked cabinet / secure storage</label>
+                <label class="sm-check"><input type="checkbox" value="Restricted physical access area"> Restricted physical access area</label>
+                <label class="sm-check"><input type="checkbox" value="Visitor logbook / sign-in required"> Visitor logbook / sign-in required</label>
+                <label class="sm-check"><input type="checkbox" value="Documents kept in sealed envelope"> Documents kept in sealed envelope</label>
+              </div>
+            </div>
+
+            <div class="sm-category">
+              <div class="sm-category-title">💻 Digital / Electronic Security</div>
+              <div class="sm-grid">
+                <label class="sm-check"><input type="checkbox" value="Password-protected files or folders"> Password-protected files or folders</label>
+                <label class="sm-check"><input type="checkbox" value="Encrypted storage or drive"> Encrypted storage or drive</label>
+                <label class="sm-check"><input type="checkbox" value="Secured network / VPN access only"> Secured network / VPN access only</label>
+                <label class="sm-check"><input type="checkbox" value="Access limited to specific device or workstation"> Access limited to specific device or workstation</label>
+                <label class="sm-check"><input type="checkbox" value="Audit trail / access logging enabled"> Audit trail / access logging enabled</label>
+                <label class="sm-check"><input type="checkbox" value="Anti-virus / endpoint protection in place"> Anti-virus / endpoint protection in place</label>
+              </div>
+            </div>
+
+            <div class="sm-category">
+              <div class="sm-category-title">👥 Access Control</div>
+              <div class="sm-grid">
+                <label class="sm-check"><input type="checkbox" value="Access limited to authorized personnel only (need-to-know basis)"> Access limited to authorized personnel only (need-to-know)</label>
+                <label class="sm-check"><input type="checkbox" value="Non-disclosure agreement (NDA) required"> Non-disclosure agreement (NDA) required</label>
+                <label class="sm-check"><input type="checkbox" value="Role-based access control applied"> Role-based access control applied</label>
+                <label class="sm-check"><input type="checkbox" value="No sharing with third parties"> No sharing with third parties</label>
+              </div>
+            </div>
+
+            <div class="sm-category">
+              <div class="sm-category-title">🗑️ Data Handling & Disposal</div>
+              <div class="sm-grid">
+                <label class="sm-check"><input type="checkbox" value="No printing or copying of records"> No printing or copying of records</label>
+                <label class="sm-check"><input type="checkbox" value="Secure deletion / shredding after use"> Secure deletion / shredding after use</label>
+                <label class="sm-check"><input type="checkbox" value="Data returned or destroyed after the access period"> Data returned or destroyed after access period</label>
+                <label class="sm-check"><input type="checkbox" value="Minimization — only necessary data accessed"> Minimization — only necessary data accessed</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top:12px;">
+            <label>Other Security Measures</label>
+            <textarea id="smOther" rows="3" placeholder="Specify any additional security measures not listed above"></textarea>
+          </div>
         </div>
 
         <!-- Section 7: Endorsement -->
@@ -527,6 +603,23 @@
       }
     }
 
+    function setDuration(days) {
+      var start = document.getElementById('accessStartDate').value;
+      if (!start) {
+        var today = new Date(); today.setHours(0,0,0,0);
+        document.getElementById('accessStartDate').valueAsDate = today;
+        start = document.getElementById('accessStartDate').value;
+      }
+      var end = new Date(start + 'T00:00:00');
+      end.setDate(end.getDate() + days);
+      document.getElementById('accessEndDate').valueAsDate = end;
+      document.querySelectorAll('.duration-btn').forEach(function(b) { b.classList.remove('active'); });
+      event.target.classList.add('active');
+    }
+    function syncEndDate() {
+      document.querySelectorAll('.duration-btn').forEach(function(b) { b.classList.remove('active'); });
+    }
+
     function goBack() {
       if (webAppUrl) window.top.location.href = webAppUrl;
       else google.script.run.withSuccessHandler(function(u){ window.top.location.href = u; }).getWebAppUrl();
@@ -577,6 +670,10 @@
       var sd=document.getElementById('accessStartDate').value,ed=document.getElementById('accessEndDate').value;
       if(sd&&ed&&new Date(sd)>new Date(ed)){showAlert('End Date must be after Start Date');return;}
 
+      var smChecked=document.querySelectorAll('#smCheckboxes input[type="checkbox"]:checked');
+      var smOther=document.getElementById('smOther').value.trim();
+      if(smChecked.length===0&&!smOther){showAlert('Please select at least one Security Measure');return;}
+
       var purpose=document.getElementById('pdPurpose').value.trim();
       if(!purpose){showAlert('Please specify the Purpose for the personal data request');return;}
 
@@ -606,7 +703,7 @@
         requesterEmail:re, requesterOffice:document.getElementById('requesterOffice').value,
         dateOfRequest:document.getElementById('dateOfRequest').value, dataSourceCategory:ds,
         dataItems:dataItems, internalRecipients:intR, externalRecipients:extR,
-        accessStartDate:sd, accessEndDate:ed, securityMeasures:document.getElementById('securityMeasures').value,
+        accessStartDate:sd, accessEndDate:ed, securityMeasures:(function(){var c=[];document.querySelectorAll('#smCheckboxes input[type="checkbox"]:checked').forEach(function(cb){c.push(cb.value);});var o=document.getElementById('smOther').value.trim();if(o)c.push(o);return c.join('; ');})(),
         approverName:document.getElementById('approverName').value, approverEmail:ae,
         approverPosition:document.getElementById('approverPosition').value,
         supportingDocs:document.getElementById('supportingDocs').value,
